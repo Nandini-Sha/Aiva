@@ -1,0 +1,10 @@
+version = "13"
+
+[global]
+[global.environment]
+
+[hasura]
+version = "2.33.0"
+
+[auth]
+version = "0.33.1"
