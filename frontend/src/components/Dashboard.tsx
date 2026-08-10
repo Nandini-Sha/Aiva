@@ -44,19 +44,49 @@ export default function Dashboard() {
     }, 1500);
   };
 
-  const handleApprove = () => {
-    if (!isAuthenticated && currentUser.role !== 'owner' && currentUser.role !== 'editor') {
-      alert("Permission Denied: Only owners/editors can approve steps.");
+const handleApprove = async () => {
+  // Real permission check – only owners or editors can approve
+  if (!isAuthenticated || (currentUser.role !== 'owner' && currentUser.role !== 'editor')) {
+    alert('Permission Denied: Only owners/editors can approve steps.');
+    return;
+  }
+
+  // Optimistically set UI to running
+  setRunStatus('running');
+
+  try {
+    const response = await fetch('/api/actions/approve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+      body: JSON.stringify({ input: { step_run_id: steps[2].id } })
+    });
+    const result = await response.json();
+
+    if (!response.ok) {
+      alert(result.message || 'Approve failed');
+      setRunStatus('paused');
       return;
     }
-    setRunStatus('running');
-    setSteps(prev => prev.map((s, i) => i === 2 ? { ...s, status: 'completed' } : (i === 3 ? { ...s, status: 'running' } : s)));
-    
+
+    // Backend approved – advance the workflow UI
+    setSteps(prev =>
+      prev.map((s, i) =>
+        i === 2 ? { ...s, status: 'completed' } :
+        i === 3 ? { ...s, status: 'running' } : s
+      )
+    );
     setTimeout(() => {
-      setSteps(prev => prev.map((s, i) => i === 3 ? { ...s, status: 'completed' } : s));
+      setSteps(prev =>
+        prev.map((s, i) => (i === 3 ? { ...s, status: 'completed' } : s))
+      );
       setRunStatus('completed');
     }, 1500);
-  };
+  } catch (err) {
+    console.error('Approve error:', err);
+    alert('Network error while approving step');
+    setRunStatus('paused');
+  }
+};
 
   return (
     <div className="flex flex-col gap-6">
