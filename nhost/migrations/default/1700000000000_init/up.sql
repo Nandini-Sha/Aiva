@@ -102,7 +102,7 @@ FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 CREATE VIEW org_usage_current_month AS
 SELECT 
     org_id, 
-    COUNT(id) AS runs_this_month 
+    COUNT(wr.id) AS runs_this_month 
 FROM workflows w
 JOIN workflow_runs wr ON w.id = wr.workflow_id
 WHERE wr.started_at >= date_trunc('month', CURRENT_DATE)
