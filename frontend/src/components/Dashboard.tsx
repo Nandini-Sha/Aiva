@@ -167,9 +167,14 @@ export default function Dashboard() {
                   Logged in as <strong className="text-stone-900 text-base ml-1">{userData?.displayName || userData?.email}</strong>
                 </span>
                 {workflowsData?.org_members?.[0]?.organization?.name && (
-                  <span className="px-2.5 py-1 bg-yellow-100 text-yellow-700 border border-yellow-200 text-xs font-bold rounded-lg tracking-wide uppercase inline-flex self-start">
-                    {workflowsData.org_members[0].organization.name}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="px-2.5 py-1 bg-yellow-100 text-yellow-700 border border-yellow-200 text-xs font-bold rounded-lg tracking-wide uppercase inline-flex self-start">
+                      {workflowsData.org_members[0].organization.name}
+                    </span>
+                    <span className="px-2.5 py-1 bg-pink-100 text-pink-700 border border-pink-200 text-xs font-bold rounded-lg tracking-wide uppercase inline-flex self-start">
+                      {userRole}
+                    </span>
+                  </div>
                 )}
               </div>
             </div>
@@ -334,7 +339,6 @@ export default function Dashboard() {
                             <Zap className={`w-4 h-4 ${step.status === 'running' ? 'text-pink-500 animate-pulse' : 'text-stone-400'}`} />
                             <span className="font-semibold text-stone-800 tracking-wide">{step.type.replace('_', ' ').toUpperCase()}</span>
                           </div>
-                          <Settings className="w-4 h-4 text-stone-400 hover:text-stone-600 cursor-pointer transition-colors" />
                         </div>
                         <div className="text-sm text-stone-500 mt-1.5 font-medium">
                           {step.type === 'llm_call' ? 'Call external LLM API' : 
