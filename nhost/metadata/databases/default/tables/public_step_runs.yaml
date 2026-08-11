@@ -1,0 +1,47 @@
+table:
+  name: step_runs
+  schema: public
+object_relationships:
+  - name: workflow_run
+    using:
+      foreign_key_constraint_on: workflow_run_id
+  - name: workflow_step
+    using:
+      foreign_key_constraint_on: step_id
+update_permissions:
+  - role: admin
+    permission:
+      columns:
+        - status
+        - output
+        - error
+        - attempt_count
+        - completed_at
+        - approved_by
+        - approved_at
+      filter: {}
+      check: null
+insert_permissions:
+  - role: admin
+    permission:
+      columns:
+        - workflow_run_id
+        - step_id
+        - status
+        - input
+      check: {}
+event_triggers:
+  - name: notify_step_trigger
+    definition:
+      enable_manual: true
+      insert:
+        columns: "*"
+      update:
+        columns:
+          - status
+    retry_conf:
+      interval_sec: 10
+      num_retries: 0
+      timeout_sec: 60
+    webhook: "{{NHOST_BACKEND_URL}}/api/notify"
+    headers: []

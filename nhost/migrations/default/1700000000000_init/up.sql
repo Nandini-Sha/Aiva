@@ -110,3 +110,12 @@ FROM workflows w
 JOIN workflow_runs wr ON w.id = wr.workflow_id
 WHERE wr.started_at >= date_trunc('month', CURRENT_DATE)
 GROUP BY org_id;
+
+-- Leads for testing db_event
+CREATE TABLE IF NOT EXISTS leads (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    org_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    email TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'new',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);

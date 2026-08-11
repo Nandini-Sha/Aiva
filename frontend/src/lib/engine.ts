@@ -47,11 +47,16 @@ export async function executeWorkflowSteps(workflow: any, runId: string, startIn
       try {
         if (step.type === 'llm_call') {
           const apiKey = process.env.LLM_API_KEY;
-          const baseUrl = process.env.LLM_BASE_URL || 'https://api.groq.com/openai/v1/chat/completions';
-          const model = process.env.LLM_MODEL || 'llama3-8b-8192';
+          const baseUrl = process.env.LLM_BASE_URL || step.config?.base_url || 'https://api.groq.com/openai/v1/chat/completions';
+          const model = step.config?.model || process.env.LLM_MODEL || 'llama3-8b-8192';
 
           if (!apiKey) {
             throw new Error("LLM_API_KEY environment variable is missing.");
+          }
+          
+          const prompt = step.config?.prompt;
+          if (!prompt) {
+             throw new Error("llm_call requires a 'prompt' in config");
           }
 
           const llmResponse: any = await fetch(baseUrl, {
@@ -63,8 +68,8 @@ export async function executeWorkflowSteps(workflow: any, runId: string, startIn
             body: JSON.stringify({
               model: model,
               messages: [
-                { role: 'system', content: 'You are an AI agent in a workflow step. Process the input provided.' },
-                { role: 'user', content: JSON.stringify(previousOutput || step.config?.prompt || 'Hello') }
+                { role: 'system', content: step.config?.system_prompt || 'You are an AI agent in a workflow step. Process the input provided.' },
+                { role: 'user', content: JSON.stringify({ input: previousOutput, prompt }) }
               ]
             })
           });
@@ -91,7 +96,9 @@ export async function executeWorkflowSteps(workflow: any, runId: string, startIn
           `, { runId, key, value });
           stepResult = { insertedId: insertRes.insert_workflow_outputs_one.id, key, value };
         } else if (step.type === 'http_request') {
-          const url = step.config?.url || 'https://httpbin.org/get';
+          const url = step.config?.url;
+          if (!url) throw new Error("http_request requires 'url' in config");
+          
           const method = step.config?.method || 'GET';
           const headers = step.config?.headers || {};
           

@@ -45,6 +45,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ message: 'Only owners or editors can create workflows' }, { status: 403 });
     }
 
+    // Layer 2: Gating for restricted steps
+    if (member.role === 'editor' && Array.isArray(steps)) {
+      const hasRestrictedStep = steps.some((s: any) => 
+        s.type === 'db_write' || s.type === 'notify' || s.type === 'webhook'
+      );
+      if (hasRestrictedStep) {
+        return NextResponse.json({ message: 'Permission denied: Only owners can add db_write, notify, or webhook steps/triggers' }, { status: 403 });
+      }
+    }
+
     // Insert workflow
     const workflowResult = await executeGraphQL(`
       mutation InsertWorkflow($name: String!, $description: String, $orgId: uuid!) {

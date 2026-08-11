@@ -1,0 +1,82 @@
+table:
+  name: leads
+  schema: public
+object_relationships:
+  - name: organization
+    using:
+      foreign_key_constraint_on: org_id
+insert_permissions:
+  - role: editor
+    permission:
+      check:
+        organization:
+          org_members:
+            user_id:
+              _eq: X-Hasura-User-Id
+      columns:
+        - email
+        - org_id
+        - status
+  - role: owner
+    permission:
+      check:
+        organization:
+          org_members:
+            user_id:
+              _eq: X-Hasura-User-Id
+      columns:
+        - email
+        - org_id
+        - status
+select_permissions:
+  - role: viewer
+    permission:
+      columns:
+        - id
+        - org_id
+        - email
+        - status
+        - created_at
+      filter:
+        organization:
+          org_members:
+            user_id:
+              _eq: X-Hasura-User-Id
+  - role: editor
+    permission:
+      columns:
+        - id
+        - org_id
+        - email
+        - status
+        - created_at
+      filter:
+        organization:
+          org_members:
+            user_id:
+              _eq: X-Hasura-User-Id
+  - role: owner
+    permission:
+      columns:
+        - id
+        - org_id
+        - email
+        - status
+        - created_at
+      filter:
+        organization:
+          org_members:
+            user_id:
+              _eq: X-Hasura-User-Id
+event_triggers:
+  - name: lead_inserted_trigger
+    definition:
+      enable_manual: true
+      insert:
+        columns: "*"
+    retry_conf:
+      interval_sec: 10
+      num_retries: 0
+      timeout_sec: 60
+    webhook: "{{NHOST_BACKEND_URL}}/api/webhook/db_event"
+    headers: []
