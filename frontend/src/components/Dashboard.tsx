@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Play, Pause, CheckCircle, Clock, Settings, Zap, Users, ShieldAlert, Key, Plus } from 'lucide-react';
-import { useAuthenticationStatus, useAccessToken, useUserData, useSignOut } from '@nhost/nextjs';
+import { useAuthenticationStatus, useAccessToken, useUserData, useSignOut, useChangePassword } from '@nhost/nextjs';
 import { gql, useQuery, useSubscription, useMutation } from '@apollo/client';
 
 
@@ -70,6 +70,7 @@ export default function Dashboard() {
   const accessToken = useAccessToken();
   const userData = useUserData();
   const { signOut } = useSignOut();
+  const { changePassword } = useChangePassword();
 
 
 
@@ -159,22 +160,26 @@ export default function Dashboard() {
               </div>
             </div>
             <div className="text-xs text-stone-500">
-              Use this JWT to query Hasura. Row-Level Security automatically restricts access to your org's data.
+              Manage your workflows and view real-time execution status below.
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="relative group/jwt flex-1 md:w-64">
-              <div className="p-2.5 bg-white rounded-xl border border-stone-200 font-mono text-[10px] text-stone-400 truncate cursor-default">
-                {accessToken}
-              </div>
-              <button 
-                onClick={() => navigator.clipboard.writeText(accessToken || '')}
-                className="absolute inset-y-0 right-0 flex items-center px-3 bg-gradient-to-l from-yellow-400 to-pink-500 text-white hover:from-yellow-300 hover:to-pink-400 text-xs rounded-r-xl opacity-0 group-hover/jwt:opacity-100 transition-all font-medium"
-              >
-                Copy JWT
-              </button>
-            </div>
-            <button onClick={() => signOut()} className="px-4 py-2 bg-white hover:bg-stone-50 border border-stone-200 rounded-xl text-sm text-stone-600 transition-colors">
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={async () => {
+                const newPass = prompt("Enter your new password (min 9 chars):");
+                if (newPass && newPass.length >= 9) {
+                  const { isError, error } = await changePassword(newPass);
+                  if (isError) alert("Error changing password: " + error?.message);
+                  else alert("Password successfully updated!");
+                } else if (newPass) {
+                  alert("Password must be at least 9 characters long.");
+                }
+              }} 
+              className="px-4 py-2 bg-white hover:bg-stone-50 border border-stone-200 rounded-xl text-sm text-stone-600 transition-colors shadow-sm"
+            >
+              Change Password
+            </button>
+            <button onClick={() => signOut()} className="px-4 py-2 bg-white hover:bg-stone-50 border border-stone-200 rounded-xl text-sm text-stone-600 transition-colors shadow-sm">
               Sign Out
             </button>
           </div>
@@ -382,6 +387,100 @@ export default function Dashboard() {
           </div>
         </div>
       </div>
+
+      {/* Team Settings (Owner Only) */}
+      {userRole === 'owner' && (
+        <div className="mt-4 border-t border-stone-200/50 pt-8">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-pink-100 rounded-xl border border-pink-200">
+              <Users className="w-5 h-5 text-pink-500" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold font-heading text-stone-900">Team Settings</h2>
+              <p className="text-sm text-stone-500">Invite new members to your organization.</p>
+            </div>
+          </div>
+          
+          <div className="glass-panel rounded-3xl p-6 md:p-8 max-w-2xl bg-white/50">
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const form = e.target as HTMLFormElement;
+                const email = (form.elements.namedItem('inviteEmail') as HTMLInputElement).value;
+                const password = (form.elements.namedItem('invitePassword') as HTMLInputElement).value;
+                const role = (form.elements.namedItem('inviteRole') as HTMLSelectElement).value;
+                const btn = form.elements.namedItem('inviteBtn') as HTMLButtonElement;
+                const orgId = workflowsData?.org_members?.[0]?.org_id;
+                
+                if (!orgId) return alert("Organization ID not found");
+                if (password.length < 9) return alert("Password must be at least 9 characters");
+                
+                btn.disabled = true;
+                btn.textContent = 'Inviting...';
+                
+                try {
+                  const res = await fetch('/api/org/invite', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, role, orgId })
+                  });
+                  const data = await res.json();
+                  if (data.success) {
+                    alert('User invited successfully!');
+                    form.reset();
+                  } else {
+                    alert('Error: ' + data.message);
+                  }
+                } catch (err) {
+                  alert('Error inviting user');
+                } finally {
+                  btn.disabled = false;
+                  btn.textContent = 'Invite Member';
+                }
+              }}
+              className="flex flex-col gap-5"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Email Address</label>
+                  <input
+                    name="inviteEmail"
+                    type="email"
+                    required
+                    placeholder="teammate@example.com"
+                    className="w-full bg-white border border-stone-200 text-stone-900 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 transition-all shadow-sm"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Initial Password</label>
+                  <input
+                    name="invitePassword"
+                    type="text"
+                    required
+                    placeholder="Min 9 characters"
+                    className="w-full bg-white border border-stone-200 text-stone-900 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 transition-all shadow-sm"
+                  />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-stone-500 uppercase tracking-wider block">Role</label>
+                <select
+                  name="inviteRole"
+                  className="w-full bg-white border border-stone-200 text-stone-900 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 transition-all shadow-sm cursor-pointer"
+                >
+                  <option value="viewer">Viewer (Read Only)</option>
+                  <option value="editor">Editor (Can edit & run workflows)</option>
+                </select>
+              </div>
+              <div className="pt-2">
+                <button name="inviteBtn" type="submit" className="flex items-center justify-center gap-2 bg-gradient-to-r from-yellow-400 to-pink-500 hover:from-yellow-300 hover:to-pink-400 text-white font-semibold px-8 py-3.5 rounded-xl transition-all shadow-lg shadow-pink-500/20 hover:shadow-pink-500/40 hover:scale-[1.02] active:scale-[0.98]">
+                  <Plus className="w-5 h-5" /> Invite Member
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
