@@ -1,66 +1,74 @@
-# AI Agent Workflow Builder
+# Aiva - AI Agent Workflow Builder
 
-A full-stack Nhost + Next.js application that allows chaining AI agents via workflows with complex multi-layer permission gating and external integrations.
+A full-stack application for building, running, and managing AI agent workflows. Built with Next.js, Nhost (PostgreSQL + Hasura + GraphQL), and TailwindCSS.
+
+## Live Demo
+**Deployed URL:** [Your Vercel URL here]
+
+## Features
+- **Visual Workflow Builder:** Chain together LLM calls, HTTP requests, conditional branches, and approval gates.
+- **Real-time Execution Tracking:** Watch your workflows execute step-by-step with live GraphQL subscriptions.
+- **Strict Role-based Access Control (RBAC):** Two-layer security ensuring data isolation between organizations and role-based permissions (Owner, Editor, Viewer) within them.
+- **Approval Gates:** Pause workflows mid-execution for human review and approval.
+- **Event-driven Triggers:** Trigger workflows manually, via scheduled cron jobs, or inbound webhooks.
 
 ## Tech Stack
+- **Frontend:** Next.js 14, React, TailwindCSS, Apollo GraphQL Client
+- **Backend:** Nhost (Hasura GraphQL Engine, PostgreSQL, Serverless Functions)
+- **AI Integration:** Groq API (Llama 3) for fast LLM inference.
 
-- **Frontend**: Next.js (App Router), React, TailwindCSS, Lucide Icons.
-- **Backend**: Nhost (Hasura GraphQL Engine, PostgreSQL, Nhost Auth, Serverless Functions).
-- **API**: GraphQL (Queries, Mutations, Subscriptions).
+## Local Setup Instructions
 
-## Core Architecture
+### Prerequisites
+- Node.js (v18+)
+- Nhost CLI installed (`npm install -g nhost-cli`)
+- Docker (required for running Nhost locally)
 
-This repository fulfills the architectural requirements of the mini n8n-style agent builder:
+### 1. Clone the repository
+```bash
+git clone <your-repo-url>
+cd Aiva
+```
 
-1. **Database Schema**: 
-   - Found in `nhost/migrations/default/1_init/up.sql`. Includes `organizations`, `workflows`, `workflow_steps`, `workflow_runs`, `step_runs`, and `org_members`.
-2. **Hasura Permissions (Layer 1 - Data Isolation)**:
-   - Found in `nhost/metadata/databases/default/tables/public_workflows.yaml` and others.
-   - Every select/insert/update/delete operation is strictly gated against the `org_members` table using the caller's `X-Hasura-User-Id`.
-   - Even if an Editor guesses an ID from another Org, the GraphQL engine denies it at the row level.
-3. **Nhost Serverless Functions (Layer 2 - Action Gating)**:
-   - Found in `frontend/src/app/api/actions/trigger/route.ts` and `frontend/src/app/api/actions/approve/route.ts`.
-   - The handlers explicitly check the caller's role *mid-execution* before proceeding with sensitive operations like resuming an `approval_gate`.
+### 2. Start the local Nhost backend
+Ensure Docker is running, then start the Nhost local environment:
+```bash
+nhost up
+```
+This will spin up Postgres, Hasura, and the Auth/Storage services. It will also automatically apply all database migrations and Hasura metadata to configure the schema and permissions.
 
-## How to Run Locally
+### 3. Setup Frontend Environment Variables
+Navigate to the `frontend` directory and install dependencies:
+```bash
+cd frontend
+npm install
+```
 
-### 1. Nhost Backend
+Create a `.env.local` file in the `frontend` directory:
+```env
+# Nhost local environment variables
+NEXT_PUBLIC_NHOST_SUBDOMAIN=local
+NEXT_PUBLIC_NHOST_REGION=
 
-Due to Nhost CLI constraints on Windows without WSL2, the easiest way to run the backend is to link this project to an **Nhost Cloud** project:
+# Hasura Admin Secret for local backend execution
+HASURA_GRAPHQL_ADMIN_SECRET=nhost-admin-secret
 
-1. Create a free project at [Nhost](https://nhost.io/).
-2. Run the SQL schema from `nhost/migrations/default/1_init/up.sql` in your Hasura Console (Data -> SQL).
-3. Apply the Hasura Metadata using the Hasura CLI (or manually configure the permissions via the UI based on the `.yaml` files).
-4. Add the Hasura Actions pointing to your Next.js deployment URL.
+# Nhost GraphQL URL for the serverless functions
+NHOST_GRAPHQL_URL=http://localhost:1337/v1/graphql
 
-*(Note: If you have a Mac/Linux or WSL2 environment, you can simply run `nhost up` from the project root).*
+# LLM API Configuration
+LLM_API_KEY=your_groq_or_openai_api_key
+LLM_BASE_URL=https://api.groq.com/openai/v1/chat/completions
+LLM_MODEL=llama-3.1-8b-instant
+```
 
-### 2. Next.js Frontend
+*Note: If you do not provide an `LLM_API_KEY`, the `llm_call` steps will fail during execution.*
 
-1. Navigate to the `frontend` directory:
-   ```bash
-   cd frontend
-   ```
-2. Install dependencies:
-   ```bash
-   npm install --legacy-peer-deps
-   ```
-3. Set environment variables in `frontend/.env.local`:
-   ```
-   NEXT_PUBLIC_NHOST_SUBDOMAIN=your-nhost-subdomain
-   NEXT_PUBLIC_NHOST_REGION=your-nhost-region
-   NHOST_ADMIN_SECRET=your-admin-secret
-   ```
-4. Start the development server:
-   ```bash
-   npm run dev
-   ```
-5. Open `http://localhost:3000` to access the interactive Workflow Builder dashboard. 
+### 4. Run the Development Server
+```bash
+npm run dev
+```
+The frontend will be available at `http://localhost:3000`.
 
-## Testing the Final Scenario
-
-The frontend includes a **Simulate User Context** dropdown that mocks the exact final scenario requested:
-- Switch to **Alice (Org A - Owner)** and hit "Run Workflow". Watch the live steps execute and pause at the Approval Gate.
-- Click "Approve & Resume" to complete the run.
-- Switch to **Bob (Org A - Viewer)**. Notice the "Run" button is locked. If Bob tries to approve a paused run, the action handler blocks it.
-- Switch to **Charlie (Org B - Owner)**. Notice the workflows isolate cleanly.
+## Submission Details
+Please refer to `WRITEUP.md` for a detailed architectural breakdown regarding schema design, the two-layer permission system, and the implementation of the approval gate logic.
