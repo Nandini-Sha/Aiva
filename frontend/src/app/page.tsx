@@ -70,7 +70,7 @@ export default function Home() {
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-emerald-500 p-[1px] shadow-lg shadow-indigo-500/20">
                 <div className="w-full h-full bg-slate-950 rounded-2xl flex items-center justify-center overflow-hidden">
-                  <img src="/logo.png" alt="Aiva Logo" className="w-full h-full object-contain" />
+                  <img src="/logo.jpg" alt="Aiva Logo" className="w-full h-full object-contain" />
                 </div>
               </div>
               <h1 className="text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-slate-400 font-heading">
