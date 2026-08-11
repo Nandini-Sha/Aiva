@@ -27,6 +27,12 @@ export async function POST(req: Request) {
         update_workflows_by_pk(pk_columns: { id: $workflowId }, _set: { name: $name, description: $description }) {
           id
         }
+        delete_step_runs(where: { workflow_run: { workflow_id: { _eq: $workflowId } } }) {
+          affected_rows
+        }
+        delete_workflow_runs(where: { workflow_id: { _eq: $workflowId } }) {
+          affected_rows
+        }
         delete_workflow_steps(where: { workflow_id: { _eq: $workflowId } }) {
           affected_rows
         }

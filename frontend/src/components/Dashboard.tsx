@@ -41,6 +41,8 @@ const SUBSCRIBE_RUN = gql`
         id
         step_id
         status
+        output
+        error
       }
     }
   }
@@ -105,6 +107,8 @@ export default function Dashboard() {
       ...s,
       status: sRun ? sRun.status : 'pending',
       stepRunId: sRun ? sRun.id : null,
+      output: sRun ? sRun.output : null,
+      error: sRun ? sRun.error : null,
     };
   });
 
@@ -385,26 +389,45 @@ export default function Dashboard() {
             
             <div className="p-5 flex-1 overflow-y-auto flex flex-col gap-3">
               {mappedSteps.map((step: any, idx: number) => (
-                <div key={step.id} className="flex items-center justify-between p-4 rounded-xl bg-white border border-stone-200 hover:border-stone-300 transition-colors shadow-sm">
-                  <span className="text-sm font-medium text-stone-700">Step {idx + 1}</span>
-                  <div className="flex items-center gap-2.5">
-                    {step.status === 'pending' && <Clock className="w-4 h-4 text-stone-400" />}
-                    {step.status === 'running' && (
-                      <svg className="animate-spin w-4 h-4 text-yellow-500" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                      </svg>
-                    )}
-                    {step.status === 'completed' && <CheckCircle className="w-4 h-4 text-emerald-500" />}
-                    {step.status === 'paused' && <Pause className="w-4 h-4 text-amber-500" />}
-                    
-                    <span className={`text-xs uppercase font-bold tracking-wider ${
-                      step.status === 'completed' ? 'text-emerald-500' :
-                      step.status === 'running' ? 'text-yellow-600' :
-                      step.status === 'paused' ? 'text-amber-500' :
-                      'text-stone-400'
-                    }`}>{step.status}</span>
+                <div key={step.id} className="flex flex-col p-4 rounded-xl bg-white border border-stone-200 hover:border-stone-300 transition-colors shadow-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-stone-700">Step {idx + 1}</span>
+                    <div className="flex items-center gap-2.5">
+                      {step.status === 'pending' && <Clock className="w-4 h-4 text-stone-400" />}
+                      {step.status === 'running' && (
+                        <svg className="animate-spin w-4 h-4 text-yellow-500" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                        </svg>
+                      )}
+                      {step.status === 'completed' && <CheckCircle className="w-4 h-4 text-emerald-500" />}
+                      {step.status === 'paused' && <Pause className="w-4 h-4 text-amber-500" />}
+                      
+                      <span className={`text-xs uppercase font-bold tracking-wider ${
+                        step.status === 'completed' ? 'text-emerald-500' :
+                        step.status === 'running' ? 'text-yellow-600' :
+                        step.status === 'paused' ? 'text-amber-500' :
+                        step.status === 'failed' ? 'text-red-500' :
+                        'text-stone-400'
+                      }`}>{step.status}</span>
+                    </div>
                   </div>
+                  
+                  {/* Step Output / Error Display */}
+                  {(step.output || step.error) && (
+                    <div className="mt-3 bg-stone-50 rounded-lg p-3 border border-stone-100 overflow-x-auto">
+                      {step.error && (
+                        <div className="text-xs text-red-600 font-mono whitespace-pre-wrap">
+                          {typeof step.error === 'object' ? JSON.stringify(step.error, null, 2) : step.error}
+                        </div>
+                      )}
+                      {step.output && !step.error && (
+                        <div className="text-xs text-stone-600 font-mono whitespace-pre-wrap">
+                          {typeof step.output === 'object' ? JSON.stringify(step.output, null, 2) : step.output}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
