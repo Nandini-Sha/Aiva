@@ -17,7 +17,7 @@ export async function POST(request: Request) {
       if (parts.length < 2) return null;
       try {
         const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
-        return payload['sub'] ?? payload['x-hasura-user-id'] ?? null;
+        return payload['sub'] ?? payload['https://hasura.io/jwt/claims']?.['x-hasura-user-id'] ?? null;
       } catch {
         return null;
       }
@@ -79,8 +79,8 @@ export async function POST(request: Request) {
       }));
 
       await executeGraphQL(`
-        mutation InsertSteps($objects: [workflows_steps_insert_input!]!) {
-          insert_workflows_steps(objects: $objects) {
+        mutation InsertSteps($objects: [workflow_steps_insert_input!]!) {
+          insert_workflow_steps(objects: $objects) {
             returning { id }
           }
         }

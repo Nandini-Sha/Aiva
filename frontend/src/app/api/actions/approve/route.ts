@@ -17,7 +17,7 @@ export async function POST(request: Request) {
       if (parts.length < 2) return null;
       try {
         const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
-        return payload['sub'] ?? payload['x-hasura-user-id'] ?? null;
+        return payload['sub'] ?? payload['https://hasura.io/jwt/claims']?.['x-hasura-user-id'] ?? null;
       } catch {
         return null;
       }
