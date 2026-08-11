@@ -1,17 +1,27 @@
 "use client";
 
 import { useState } from 'react';
-import { useSignInEmailPassword } from '@nhost/nextjs';
+import { useSignInEmailPassword, useSignUpEmailPassword } from '@nhost/nextjs';
 
 export default function Login({ onSimulatorClick }: { onSimulatorClick: () => void }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isSignUp, setIsSignUp] = useState(false);
   
-  const { signInEmailPassword, isLoading, isError, error } = useSignInEmailPassword();
+  const { signInEmailPassword, isLoading: isSigningIn, isError: isSignInError, error: signInError } = useSignInEmailPassword();
+  const { signUpEmailPassword, isLoading: isSigningUp, isError: isSignUpError, error: signUpError } = useSignUpEmailPassword();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const isLoading = isSigningIn || isSigningUp;
+  const isError = isSignInError || isSignUpError;
+  const error = signInError || signUpError;
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await signInEmailPassword(email, password);
+    if (isSignUp) {
+      await signUpEmailPassword(email, password);
+    } else {
+      await signInEmailPassword(email, password);
+    }
   };
 
   return (
@@ -22,10 +32,14 @@ export default function Login({ onSimulatorClick }: { onSimulatorClick: () => vo
         <div className="absolute -top-10 -right-10 w-40 h-40 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10">
-          <h2 className="text-3xl font-bold text-white mb-2 font-heading tracking-tight">Welcome back</h2>
-          <p className="text-slate-400 mb-8 text-sm">Sign in to orchestrate your AI workflows.</p>
+          <h2 className="text-3xl font-bold text-white mb-2 font-heading tracking-tight">
+            {isSignUp ? 'Create account' : 'Welcome back'}
+          </h2>
+          <p className="text-slate-400 mb-8 text-sm">
+            {isSignUp ? 'Sign up to start orchestrating AI workflows.' : 'Sign in to orchestrate your AI workflows.'}
+          </p>
           
-          <form onSubmit={handleLogin} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-1.5">
               <label className="block text-sm font-medium text-slate-300">Email Address</label>
               <div className="relative">
@@ -50,8 +64,12 @@ export default function Login({ onSimulatorClick }: { onSimulatorClick: () => vo
                   placeholder="••••••••"
                   className="w-full bg-slate-950/50 border border-white/5 text-white px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all placeholder:text-slate-600"
                   required
+                  minLength={isSignUp ? 9 : undefined}
                 />
               </div>
+              {isSignUp && (
+                <p className="text-xs text-slate-500">Minimum 9 characters</p>
+              )}
             </div>
 
             {isError && (
@@ -68,17 +86,27 @@ export default function Login({ onSimulatorClick }: { onSimulatorClick: () => vo
               disabled={isLoading}
               className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-semibold py-3 rounded-xl transition-all disabled:opacity-50 hover:scale-[1.02] hover:shadow-lg hover:shadow-indigo-500/25 active:scale-[0.98]"
             >
-              {isLoading ? 'Authenticating...' : 'Sign In'}
+              {isLoading ? (isSignUp ? 'Creating account...' : 'Authenticating...') : (isSignUp ? 'Create Account' : 'Sign In')}
             </button>
           </form>
 
-          <div className="mt-8 flex items-center gap-4 before:flex-1 before:h-px before:bg-gradient-to-r before:from-transparent before:to-white/10 after:flex-1 after:h-px after:bg-gradient-to-l after:from-transparent after:to-white/10">
+          <p className="mt-6 text-center text-sm text-slate-500">
+            {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
+            <button
+              onClick={() => { setIsSignUp(!isSignUp); setEmail(''); setPassword(''); }}
+              className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
+            >
+              {isSignUp ? 'Sign in' : 'Sign up'}
+            </button>
+          </p>
+
+          <div className="mt-6 flex items-center gap-4 before:flex-1 before:h-px before:bg-gradient-to-r before:from-transparent before:to-white/10 after:flex-1 after:h-px after:bg-gradient-to-l after:from-transparent after:to-white/10">
             <span className="text-xs text-slate-500 uppercase tracking-widest font-medium">or</span>
           </div>
 
           <button 
             onClick={onSimulatorClick}
-            className="mt-8 w-full bg-slate-800/50 hover:bg-slate-700/50 text-slate-300 hover:text-white font-medium py-3 rounded-xl border border-white/5 hover:border-white/10 transition-all hover:scale-[1.02] active:scale-[0.98]"
+            className="mt-6 w-full bg-slate-800/50 hover:bg-slate-700/50 text-slate-300 hover:text-white font-medium py-3 rounded-xl border border-white/5 hover:border-white/10 transition-all hover:scale-[1.02] active:scale-[0.98]"
           >
             Continue with Simulator Mode
           </button>
