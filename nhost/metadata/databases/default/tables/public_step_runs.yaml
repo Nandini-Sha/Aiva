@@ -43,5 +43,5 @@ event_triggers:
       interval_sec: 10
       num_retries: 0
       timeout_sec: 60
-    webhook: "{{NHOST_BACKEND_URL}}/api/notify"
+    webhook: "{{FRONTEND_URL}}/api/notify"
     headers: []

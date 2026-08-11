@@ -2,7 +2,7 @@ actions:
   - name: triggerWorkflowRun
     definition:
       kind: synchronous
-      handler: "{{NHOST_BACKEND_URL}}/api/actions/trigger"
+      handler: "{{FRONTEND_URL}}/api/actions/trigger"
       forward_client_headers: true
     permissions:
       - role: owner
@@ -10,7 +10,7 @@ actions:
   - name: approveStep
     definition:
       kind: synchronous
-      handler: "{{NHOST_BACKEND_URL}}/api/actions/approve"
+      handler: "{{FRONTEND_URL}}/api/actions/approve"
       forward_client_headers: true
     permissions:
       - role: owner

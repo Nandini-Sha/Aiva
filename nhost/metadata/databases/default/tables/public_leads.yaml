@@ -78,5 +78,5 @@ event_triggers:
       interval_sec: 10
       num_retries: 0
       timeout_sec: 60
-    webhook: "{{NHOST_BACKEND_URL}}/api/webhook/db_event"
+    webhook: "{{FRONTEND_URL}}/api/webhook/db_event"
     headers: []
