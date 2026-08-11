@@ -20,7 +20,12 @@ export default function WorkflowEditor({ initialWorkflow }: WorkflowEditorProps)
   const accessToken = useAccessToken();
   const [workflowName, setWorkflowName] = useState(initialWorkflow?.name || '');
   const [workflowDesc, setWorkflowDesc] = useState(initialWorkflow?.description || '');
-  const [steps, setSteps] = useState<Array<{ type: string; config: any }>>(initialWorkflow?.steps || []);
+  const [steps, setSteps] = useState<Array<{ type: string; configString: string }>>(
+    initialWorkflow?.steps?.map(s => ({
+      type: s.type,
+      configString: typeof s.config === 'object' ? JSON.stringify(s.config, null, 2) : '{}'
+    })) || []
+  );
   // Trigger configuration
   const [triggerType, setTriggerType] = useState<'manual' | 'webhook'>('manual');
   const [webhookUrl, setWebhookUrl] = useState('');
@@ -41,7 +46,7 @@ export default function WorkflowEditor({ initialWorkflow }: WorkflowEditorProps)
   };
 
   const addStep = (type: string) => {
-    setSteps(prev => [...prev, { type, config: {} }]);
+    setSteps(prev => [...prev, { type, configString: '{\n  \n}' }]);
   };
 
   const handleSave = async () => {
@@ -54,11 +59,21 @@ export default function WorkflowEditor({ initialWorkflow }: WorkflowEditorProps)
       return;
     }
     try {
+      const parsedSteps = steps.map((s, idx) => {
+        let parsedConfig = {};
+        try {
+          parsedConfig = JSON.parse(s.configString || '{}');
+        } catch (e) {
+          throw new Error(`Invalid JSON in step ${idx + 1}`);
+        }
+        return { type: s.type, config: parsedConfig, order_index: idx };
+      });
+
       const isUpdate = !!initialWorkflow;
       const url = isUpdate ? '/api/workflows/update' : '/api/workflows/create';
       const bodyPayload = isUpdate 
-        ? { workflowId: initialWorkflow.id, name: workflowName, description: workflowDesc, steps }
-        : { input: { name: workflowName, description: workflowDesc, steps: steps.map((s, idx) => ({ type: s.type, config: s.config, order_index: idx })) } };
+        ? { workflowId: initialWorkflow.id, name: workflowName, description: workflowDesc, steps: parsedSteps }
+        : { input: { name: workflowName, description: workflowDesc, steps: parsedSteps } };
 
       const response = await fetch(url, {
         method: 'POST',
@@ -192,24 +207,18 @@ export default function WorkflowEditor({ initialWorkflow }: WorkflowEditorProps)
                   <label className="text-[10px] font-semibold text-stone-400 uppercase tracking-wider block mb-1">JSON Config</label>
                   <textarea
                     className="w-full bg-stone-50 border border-stone-200 text-stone-600 font-mono text-xs px-3 py-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-pink-400 focus:border-pink-400 transition-all resize-none shadow-inner"
-                    rows={2}
-                    value={JSON.stringify(step.config, null, 2)}
+                    rows={4}
+                    value={step.configString}
                     onChange={(e) => {
-                      try {
-                        const parsed = JSON.parse(e.target.value);
-                        setSteps(prev => prev.map((s, i) => i === idx ? { ...s, config: parsed } : s));
-                      } catch (err) {
-                        // Allow invalid JSON while typing, but ideally keep valid state.
-                        // Since this is a simple editor, we'll just not update state if invalid,
-                        // or we can store a string state. For simplicity, we just catch the error.
-                      }
+                      setSteps(prev => prev.map((s, i) => i === idx ? { ...s, configString: e.target.value } : s));
                     }}
                     onBlur={(e) => {
                       try {
+                        // Just format it nicely on blur if valid
                         const parsed = JSON.parse(e.target.value);
-                        setSteps(prev => prev.map((s, i) => i === idx ? { ...s, config: parsed } : s));
+                        setSteps(prev => prev.map((s, i) => i === idx ? { ...s, configString: JSON.stringify(parsed, null, 2) } : s));
                       } catch(err) {
-                        alert("Invalid JSON in step config");
+                        // ignore error, they can continue fixing it
                       }
                     }}
                   />
