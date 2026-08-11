@@ -6,7 +6,7 @@ object_relationships:
     using:
       foreign_key_constraint_on: org_id
 select_permissions:
-  - role: editor
+  - role: user
     permission:
       columns:
         - id
@@ -19,29 +19,40 @@ select_permissions:
           org_members:
             user_id:
               _eq: X-Hasura-User-Id
-  - role: owner
+insert_permissions:
+  - role: user
     permission:
-      columns:
-        - id
-        - org_id
-        - user_id
-        - role
-        - created_at
-      filter:
+      check:
         organization:
           org_members:
+            role:
+              _eq: owner
             user_id:
               _eq: X-Hasura-User-Id
-  - role: viewer
-    permission:
       columns:
-        - id
         - org_id
         - user_id
         - role
-        - created_at
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - role
       filter:
         organization:
           org_members:
+            role:
+              _eq: owner
+            user_id:
+              _eq: X-Hasura-User-Id
+      check: null
+delete_permissions:
+  - role: user
+    permission:
+      filter:
+        organization:
+          org_members:
+            role:
+              _eq: owner
             user_id:
               _eq: X-Hasura-User-Id

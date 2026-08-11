@@ -13,102 +13,64 @@ array_relationships:
         table:
           name: step_runs
           schema: public
-insert_permissions:
-  - role: editor
-    permission:
-      check:
-        workflow:
-          organization:
-            org_members:
-              _and:
-                - user_id:
-                    _eq: X-Hasura-User-Id
-                - role:
-                    _in:
-                      - editor
-                      - owner
-      columns:
-        - status
-        - workflow_id
-  - role: owner
-    permission:
-      check:
-        workflow:
-          organization:
-            org_members:
-              _and:
-                - user_id:
-                    _eq: X-Hasura-User-Id
-                - role:
-                    _eq: owner
-      columns:
-        - status
-        - workflow_id
 select_permissions:
-  - role: editor
+  - role: user
     permission:
-      columns: '*'
+      columns:
+        - id
+        - workflow_id
+        - status
+        - started_at
+        - completed_at
       filter:
         workflow:
           organization:
             org_members:
               user_id:
                 _eq: X-Hasura-User-Id
-  - role: owner
+insert_permissions:
+  - role: user
     permission:
-      columns: '*'
-      filter:
+      check:
         workflow:
           organization:
             org_members:
+              role:
+                _in:
+                  - editor
+                  - owner
               user_id:
                 _eq: X-Hasura-User-Id
-  - role: viewer
-    permission:
-      columns: '*'
-      filter:
-        workflow:
-          organization:
-            org_members:
-              user_id:
-                _eq: X-Hasura-User-Id
+      columns:
+        - workflow_id
+        - status
 update_permissions:
-  - role: editor
+  - role: user
     permission:
       columns:
         - status
+        - completed_at
       filter:
         workflow:
           organization:
             org_members:
-              _and:
-                - user_id:
-                    _eq: X-Hasura-User-Id
-                - role:
-                    _in:
-                      - editor
-                      - owner
-      check: null
-  - role: owner
-    permission:
-      columns:
-        - status
-      filter:
-        workflow:
-          organization:
-            org_members:
-              _and:
-                - user_id:
-                    _eq: X-Hasura-User-Id
-                - role:
-                    _eq: owner
+              role:
+                _in:
+                  - editor
+                  - owner
+              user_id:
+                _eq: X-Hasura-User-Id
       check: null
 delete_permissions:
-  - role: owner
+  - role: user
     permission:
       filter:
         workflow:
           organization:
             org_members:
+              role:
+                _in:
+                  - editor
+                  - owner
               user_id:
                 _eq: X-Hasura-User-Id

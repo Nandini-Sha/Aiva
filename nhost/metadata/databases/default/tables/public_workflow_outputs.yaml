@@ -6,7 +6,7 @@ object_relationships:
     using:
       foreign_key_constraint_on: workflow_run_id
 select_permissions:
-  - role: editor
+  - role: user
     permission:
       columns:
         - id
@@ -21,33 +21,21 @@ select_permissions:
               org_members:
                 user_id:
                   _eq: X-Hasura-User-Id
-  - role: owner
+insert_permissions:
+  - role: user
     permission:
-      columns:
-        - id
-        - workflow_run_id
-        - key
-        - value
-        - created_at
-      filter:
+      check:
         workflow_run:
           workflow:
             organization:
               org_members:
+                role:
+                  _in:
+                    - editor
+                    - owner
                 user_id:
                   _eq: X-Hasura-User-Id
-  - role: viewer
-    permission:
       columns:
-        - id
         - workflow_run_id
         - key
         - value
-        - created_at
-      filter:
-        workflow_run:
-          workflow:
-            organization:
-              org_members:
-                user_id:
-                  _eq: X-Hasura-User-Id

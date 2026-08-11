@@ -5,134 +5,69 @@ object_relationships:
   - name: workflow
     using:
       foreign_key_constraint_on: workflow_id
-insert_permissions:
-  - role: editor
-    permission:
-      check:
-        _and:
-          - workflow:
-              organization:
-                org_members:
-                  _and:
-                    - user_id:
-                        _eq: X-Hasura-User-Id
-                    - role:
-                        _in:
-                          - editor
-                          - owner
-          - type:
-              _nin:
-                - db_write
-                - notify
-                - webhook
-      columns: '*'
-  - role: owner
-    permission:
-      check:
-        workflow:
-          organization:
-            org_members:
-              _and:
-                - user_id:
-                    _eq: X-Hasura-User-Id
-                - role:
-                    _eq: owner
-      columns: '*'
 select_permissions:
-  - role: editor
+  - role: user
     permission:
-      columns: '*'
+      columns:
+        - id
+        - workflow_id
+        - type
+        - config
+        - order_index
+        - created_at
+        - updated_at
       filter:
         workflow:
           organization:
             org_members:
               user_id:
                 _eq: X-Hasura-User-Id
-  - role: owner
+insert_permissions:
+  - role: user
     permission:
-      columns: '*'
-      filter:
+      check:
         workflow:
           organization:
             org_members:
+              role:
+                _in:
+                  - editor
+                  - owner
               user_id:
                 _eq: X-Hasura-User-Id
-  - role: viewer
-    permission:
-      columns: '*'
-      filter:
-        workflow:
-          organization:
-            org_members:
-              user_id:
-                _eq: X-Hasura-User-Id
+      columns:
+        - workflow_id
+        - type
+        - config
+        - order_index
 update_permissions:
-  - role: editor
+  - role: user
     permission:
       columns:
-        - config
-        - order_index
-      filter:
-        _and:
-          - workflow:
-              organization:
-                org_members:
-                  _and:
-                    - user_id:
-                        _eq: X-Hasura-User-Id
-                    - role:
-                        _in:
-                          - editor
-                          - owner
-          - type:
-              _nin:
-                - db_write
-                - notify
-                - webhook
-      check: null
-  - role: owner
-    permission:
-      columns:
+        - type
         - config
         - order_index
       filter:
         workflow:
           organization:
             org_members:
-              _and:
-                - user_id:
-                    _eq: X-Hasura-User-Id
-                - role:
-                    _eq: owner
+              role:
+                _in:
+                  - editor
+                  - owner
+              user_id:
+                _eq: X-Hasura-User-Id
       check: null
 delete_permissions:
-  - role: editor
-    permission:
-      filter:
-        _and:
-          - workflow:
-              organization:
-                org_members:
-                  _and:
-                    - user_id:
-                        _eq: X-Hasura-User-Id
-                    - role:
-                        _in:
-                          - editor
-                          - owner
-          - type:
-              _nin:
-                - db_write
-                - notify
-                - webhook
-  - role: owner
+  - role: user
     permission:
       filter:
         workflow:
           organization:
             org_members:
-              _and:
-                - user_id:
-                    _eq: X-Hasura-User-Id
-                - role:
-                    _eq: owner
+              role:
+                _in:
+                  - editor
+                  - owner
+              user_id:
+                _eq: X-Hasura-User-Id

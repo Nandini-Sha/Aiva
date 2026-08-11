@@ -8,6 +8,71 @@ object_relationships:
   - name: workflow_step
     using:
       foreign_key_constraint_on: step_id
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - id
+        - workflow_run_id
+        - step_id
+        - status
+        - input
+        - output
+        - error
+        - attempt_count
+        - approved_by
+        - approved_at
+        - started_at
+        - completed_at
+      filter:
+        workflow_run:
+          workflow:
+            organization:
+              org_members:
+                user_id:
+                  _eq: X-Hasura-User-Id
+insert_permissions:
+  - role: user
+    permission:
+      check:
+        workflow_run:
+          workflow:
+            organization:
+              org_members:
+                role:
+                  _in:
+                    - editor
+                    - owner
+                user_id:
+                  _eq: X-Hasura-User-Id
+      columns:
+        - workflow_run_id
+        - step_id
+        - status
+        - input
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - status
+        - output
+        - error
+        - attempt_count
+        - completed_at
+        - approved_by
+        - approved_at
+      filter:
+        workflow_run:
+          workflow:
+            organization:
+              org_members:
+                role:
+                  _in:
+                    - editor
+                    - owner
+                user_id:
+                  _eq: X-Hasura-User-Id
+      check: null
 event_triggers:
   - name: notify_step_trigger
     definition:
