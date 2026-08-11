@@ -135,26 +135,56 @@ export default function WorkflowEditor() {
           <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-1">Workflow Sequence</label>
           <div className="bg-slate-950/30 rounded-2xl p-2 border border-white/5">
             {steps.map((step, idx) => (
-              <div key={idx} className="flex items-center justify-between bg-slate-900/80 p-3 mb-2 last:mb-0 rounded-xl border border-white/5 group">
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 rounded-md bg-slate-800 flex items-center justify-center text-xs text-slate-400 font-bold border border-white/5">
-                    {idx + 1}
+              <div key={idx} className="flex flex-col bg-slate-900/80 p-3 mb-3 last:mb-0 rounded-xl border border-white/5 group">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-6 h-6 rounded-md bg-slate-800 flex items-center justify-center text-xs text-slate-400 font-bold border border-white/5">
+                      {idx + 1}
+                    </div>
+                    <span className="text-sm font-medium text-slate-200 capitalize tracking-wide">{step.type.replace('_', ' ')}</span>
                   </div>
-                  <span className="text-sm font-medium text-slate-200 capitalize tracking-wide">{step.type.replace('_', ' ')}</span>
+                  <div className="flex gap-1.5 opacity-50 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => moveStep(idx, 'up')}
+                      className="w-7 h-7 flex items-center justify-center bg-slate-800 hover:bg-indigo-500/20 text-slate-400 hover:text-indigo-400 border border-transparent hover:border-indigo-500/30 rounded-lg transition-colors disabled:opacity-30 disabled:hover:bg-slate-800 disabled:hover:text-slate-400 disabled:hover:border-transparent"
+                      disabled={idx === 0}
+                      aria-label="Move up"
+                    >↑</button>
+                    <button
+                      onClick={() => moveStep(idx, 'down')}
+                      className="w-7 h-7 flex items-center justify-center bg-slate-800 hover:bg-indigo-500/20 text-slate-400 hover:text-indigo-400 border border-transparent hover:border-indigo-500/30 rounded-lg transition-colors disabled:opacity-30 disabled:hover:bg-slate-800 disabled:hover:text-slate-400 disabled:hover:border-transparent"
+                      disabled={idx === steps.length - 1}
+                      aria-label="Move down"
+                    >↓</button>
+                  </div>
                 </div>
-                <div className="flex gap-1.5 opacity-50 group-hover:opacity-100 transition-opacity">
-                  <button
-                    onClick={() => moveStep(idx, 'up')}
-                    className="w-7 h-7 flex items-center justify-center bg-slate-800 hover:bg-indigo-500/20 text-slate-400 hover:text-indigo-400 border border-transparent hover:border-indigo-500/30 rounded-lg transition-colors disabled:opacity-30 disabled:hover:bg-slate-800 disabled:hover:text-slate-400 disabled:hover:border-transparent"
-                    disabled={idx === 0}
-                    aria-label="Move up"
-                  >↑</button>
-                  <button
-                    onClick={() => moveStep(idx, 'down')}
-                    className="w-7 h-7 flex items-center justify-center bg-slate-800 hover:bg-indigo-500/20 text-slate-400 hover:text-indigo-400 border border-transparent hover:border-indigo-500/30 rounded-lg transition-colors disabled:opacity-30 disabled:hover:bg-slate-800 disabled:hover:text-slate-400 disabled:hover:border-transparent"
-                    disabled={idx === steps.length - 1}
-                    aria-label="Move down"
-                  >↓</button>
+                
+                {/* Config JSON Input */}
+                <div className="mt-3 pl-9">
+                  <label className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider block mb-1">JSON Config</label>
+                  <textarea
+                    className="w-full bg-slate-950 border border-white/5 text-slate-300 font-mono text-xs px-3 py-2 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all resize-none"
+                    rows={2}
+                    value={JSON.stringify(step.config, null, 2)}
+                    onChange={(e) => {
+                      try {
+                        const parsed = JSON.parse(e.target.value);
+                        setSteps(prev => prev.map((s, i) => i === idx ? { ...s, config: parsed } : s));
+                      } catch (err) {
+                        // Allow invalid JSON while typing, but ideally keep valid state.
+                        // Since this is a simple editor, we'll just not update state if invalid,
+                        // or we can store a string state. For simplicity, we just catch the error.
+                      }
+                    }}
+                    onBlur={(e) => {
+                      try {
+                        const parsed = JSON.parse(e.target.value);
+                        setSteps(prev => prev.map((s, i) => i === idx ? { ...s, config: parsed } : s));
+                      } catch(err) {
+                        alert("Invalid JSON in step config");
+                      }
+                    }}
+                  />
                 </div>
               </div>
             ))}
