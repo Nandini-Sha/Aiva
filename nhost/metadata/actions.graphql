@@ -2,9 +2,7 @@ type Mutation {
   triggerWorkflowRun(
     workflow_id: uuid!
   ): ActionResponse
-}
 
-type Mutation {
   approveStep(
     step_run_id: uuid!
   ): ActionResponse
