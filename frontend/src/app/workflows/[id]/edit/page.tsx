@@ -13,7 +13,7 @@ const GET_WORKFLOW = gql`
       id
       name
       description
-      workflow_steps(order_by: { order_index: asc }) {
+      steps(order_by: { order_index: asc }) {
         id
         type
         config
@@ -55,7 +55,7 @@ export default function EditWorkflowPage() {
     id: workflow.id,
     name: workflow.name,
     description: workflow.description,
-    steps: workflow.workflow_steps.map((s: any) => ({ type: s.type, config: s.config }))
+    steps: workflow.steps.map((s: any) => ({ type: s.type, config: s.config }))
   };
 
   return (
