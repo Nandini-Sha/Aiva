@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { gql, useQuery } from '@apollo/client';
+import { useAuthenticationStatus } from '@nhost/nextjs';
 import WorkflowEditor from '../../../../components/WorkflowEditor';
 import Link from 'next/link';
 import { ArrowLeft, Loader2 } from 'lucide-react';
@@ -27,13 +28,14 @@ export default function EditWorkflowPage() {
   const params = useParams();
   const router = useRouter();
   const id = params.id as string;
+  const { isAuthenticated, isLoading: authLoading } = useAuthenticationStatus();
 
   const { data, loading, error } = useQuery(GET_WORKFLOW, {
     variables: { id },
-    skip: !id,
+    skip: !id || !isAuthenticated,
   });
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="min-h-screen bg-stone-50 flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-pink-500 animate-spin" />

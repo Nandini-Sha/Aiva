@@ -3,7 +3,9 @@
 import { useState, useEffect } from 'react';
 import { Play, Pause, CheckCircle, Clock, Settings, Zap, Users, ShieldAlert, Key, Plus, Pencil, Trash2 } from 'lucide-react';
 import { useAuthenticationStatus, useAccessToken, useUserData, useSignOut, useChangePassword } from '@nhost/nextjs';
+import { NhostClient, NhostProvider } from '@nhost/nextjs'
 import { gql, useQuery, useSubscription, useMutation } from '@apollo/client';
+import Link from 'next/link';
 
 
 
@@ -286,17 +288,17 @@ export default function Dashboard() {
                 </div>
                 <div className="flex items-center gap-2">
                   {userRole !== 'viewer' && (
-                    <a href="/workflows/create" className="flex items-center gap-1 bg-white hover:bg-stone-50 text-stone-700 border border-stone-200 px-4 py-2.5 rounded-xl text-sm font-medium transition-all shadow-sm">
+                    <Link href="/workflows/create" className="flex items-center gap-1 bg-white hover:bg-stone-50 text-stone-700 border border-stone-200 px-4 py-2.5 rounded-xl text-sm font-medium transition-all shadow-sm">
                       <Plus className="w-4 h-4" /> New
-                    </a>
+                    </Link>
                   )}
                   {(userRole !== 'viewer') ? (
                     <>
                       {activeWorkflowId && (
                         <>
-                          <a href={`/workflows/${activeWorkflowId}/edit`} className="flex items-center justify-center p-2.5 bg-white hover:bg-blue-50 text-stone-400 hover:text-blue-500 border border-stone-200 hover:border-blue-200 rounded-xl transition-all shadow-sm">
+                          <Link href={`/workflows/${activeWorkflowId}/edit`} className="flex items-center justify-center p-2.5 bg-white hover:bg-blue-50 text-stone-400 hover:text-blue-500 border border-stone-200 hover:border-blue-200 rounded-xl transition-all shadow-sm">
                             <Pencil className="w-4 h-4" />
-                          </a>
+                          </Link>
                           <button 
                             onClick={async () => {
                               if (confirm('Are you sure you want to delete this workflow?')) {
@@ -368,7 +370,7 @@ export default function Dashboard() {
                     <Settings className="w-8 h-8 opacity-50" />
                   </div>
                   <p>No workflows found.</p>
-                  <a href="/workflows/create" className="text-pink-500 hover:text-pink-400 font-medium">Create your first workflow &rarr;</a>
+                  <Link href="/workflows/create" className="text-pink-500 hover:text-pink-400 font-medium">Create your first workflow &rarr;</Link>
                 </div>
               )}
             </div>
