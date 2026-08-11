@@ -22,23 +22,18 @@ export default function Login({ onSimulatorClick }: { onSimulatorClick: () => vo
     setSetupError('');
 
     if (isSignUp) {
-      const result = await signUpEmailPassword(email, password);
-      // After successful signup, create the organization
-      const userId = (result as any)?.session?.user?.id;
-      if (userId && orgName) {
-        try {
-          const res = await fetch('/api/org/create', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId, orgName }),
-          });
-          if (!res.ok) {
-            const data = await res.json();
-            setSetupError(data.message || 'Failed to create organization');
-          }
-        } catch {
-          setSetupError('Failed to create organization. Please try again.');
+      try {
+        if (orgName) {
+          localStorage.setItem('pendingOrgName', orgName);
         }
+        const result = await signUpEmailPassword(email, password);
+        if ((result as any)?.isError) {
+           setSetupError((result as any)?.error?.message || 'Signup failed');
+           localStorage.removeItem('pendingOrgName');
+        }
+      } catch (err: any) {
+        setSetupError('Signup failed. Please try again.');
+        localStorage.removeItem('pendingOrgName');
       }
     } else {
       await signInEmailPassword(email, password);

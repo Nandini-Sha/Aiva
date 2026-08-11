@@ -1,23 +1,56 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useAuthenticationStatus } from '@nhost/nextjs';
+import { useAuthenticationStatus, useUserData } from '@nhost/nextjs';
 import Dashboard from "@/components/Dashboard";
 import Login from "@/components/Login";
 
 export default function Home() {
   const { isAuthenticated, isLoading } = useAuthenticationStatus();
+  const userData = useUserData();
   const [useSimulator, setUseSimulator] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isCreatingOrg, setIsCreatingOrg] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  if (!mounted) {
+  useEffect(() => {
+    if (isAuthenticated && userData) {
+      const pendingOrg = localStorage.getItem('pendingOrgName');
+      if (pendingOrg) {
+        setIsCreatingOrg(true);
+        fetch('/api/org/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: userData.id, orgName: pendingOrg })
+        }).then(async (res) => {
+          if (!res.ok) {
+             const data = await res.json();
+             console.error("Org creation failed:", data);
+             alert("Failed to setup organization: " + (data.message || 'Unknown error'));
+          }
+          localStorage.removeItem('pendingOrgName');
+          setIsCreatingOrg(false);
+        }).catch(err => {
+          console.error("Org creation error:", err);
+          localStorage.removeItem('pendingOrgName');
+          setIsCreatingOrg(false);
+        });
+      }
+    }
+  }, [isAuthenticated, userData]);
+
+  if (!mounted || isCreatingOrg) {
     return (
       <main className="min-h-screen flex flex-col bg-slate-950 text-slate-50 overflow-hidden relative">
-        <div className="flex-1 flex items-center justify-center">Loading...</div>
+        <div className="flex-1 flex items-center justify-center flex-col gap-4">
+          <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+          <div className="text-slate-400 font-medium tracking-wide">
+            {isCreatingOrg ? 'Setting up your organization...' : 'Loading...'}
+          </div>
+        </div>
       </main>
     );
   }
