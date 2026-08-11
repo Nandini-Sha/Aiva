@@ -5,6 +5,7 @@ actions:
       output_type: ActionResponse
       forward_client_headers: true
       type: mutation
+      kind: synchronous
     permissions:
       - role: user
   - name: approveStep
@@ -13,6 +14,7 @@ actions:
       output_type: ActionResponse
       forward_client_headers: true
       type: mutation
+      kind: synchronous
     permissions:
       - role: user
 custom_types:
