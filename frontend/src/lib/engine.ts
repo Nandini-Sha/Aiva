@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
-const HASURA_GRAPHQL_ENDPOINT = process.env.NEXT_PUBLIC_NHOST_GRAPHQL_URL!;
-const HASURA_ADMIN_SECRET = process.env.NHOST_ADMIN_SECRET!;
+const HASURA_GRAPHQL_ENDPOINT = process.env.NEXT_PUBLIC_NHOST_GRAPHQL_URL || process.env.NHOST_GRAPHQL_URL || 'https://local.hasura.dev/v1/graphql';
+const HASURA_ADMIN_SECRET = process.env.HASURA_GRAPHQL_ADMIN_SECRET || process.env.NHOST_ADMIN_SECRET || '';
 
 export async function executeGraphQL(query: string, variables: any = {}) {
   const res = await fetch(HASURA_GRAPHQL_ENDPOINT, {
