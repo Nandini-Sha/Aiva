@@ -294,9 +294,6 @@ export default function Dashboard() {
                     <>
                       {activeWorkflowId && (
                         <>
-                          <a href={`/workflows/${activeWorkflowId}/edit`} className="flex items-center justify-center p-2.5 bg-white hover:bg-blue-50 text-stone-400 hover:text-blue-500 border border-stone-200 hover:border-blue-200 rounded-xl transition-all shadow-sm">
-                            <Pencil className="w-4 h-4" />
-                          </a>
                           <button 
                             onClick={async () => {
                               if (confirm('Are you sure you want to delete this workflow?')) {
