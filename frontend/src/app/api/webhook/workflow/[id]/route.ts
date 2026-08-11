@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { executeGraphQL, executeWorkflowSteps } from '../../../../../../lib/engine';
+import { executeGraphQL, executeWorkflowSteps } from '../../../../../lib/engine';
 
 export async function POST(request: Request, { params }: { params: { id: string } }) {
   try {
