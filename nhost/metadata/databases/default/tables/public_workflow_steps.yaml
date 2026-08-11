@@ -26,15 +26,29 @@ insert_permissions:
   - role: user
     permission:
       check:
-        workflow:
-          organization:
-            org_members:
-              role:
-                _in:
-                  - editor
-                  - owner
-              user_id:
-                _eq: X-Hasura-User-Id
+        _or:
+          - _and:
+              - type:
+                  _nin:
+                    - db_write
+                    - webhook
+                    - notify
+              - workflow:
+                  organization:
+                    org_members:
+                      role:
+                        _in:
+                          - editor
+                          - owner
+                      user_id:
+                        _eq: X-Hasura-User-Id
+          - workflow:
+              organization:
+                org_members:
+                  role:
+                    _eq: owner
+                  user_id:
+                    _eq: X-Hasura-User-Id
       columns:
         - workflow_id
         - type
@@ -48,15 +62,29 @@ update_permissions:
         - config
         - order_index
       filter:
-        workflow:
-          organization:
-            org_members:
-              role:
-                _in:
-                  - editor
-                  - owner
-              user_id:
-                _eq: X-Hasura-User-Id
+        _or:
+          - _and:
+              - type:
+                  _nin:
+                    - db_write
+                    - webhook
+                    - notify
+              - workflow:
+                  organization:
+                    org_members:
+                      role:
+                        _in:
+                          - editor
+                          - owner
+                      user_id:
+                        _eq: X-Hasura-User-Id
+          - workflow:
+              organization:
+                org_members:
+                  role:
+                    _eq: owner
+                  user_id:
+                    _eq: X-Hasura-User-Id
       check: null
 delete_permissions:
   - role: user

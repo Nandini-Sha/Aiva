@@ -121,6 +121,11 @@ export async function executeWorkflowSteps(workflow: any, runId: string, startIn
             throw new Error(`HTTP ${httpRes.status}: ${responseText.substring(0, 100)}`);
           }
 
+        } else if (step.type === 'notify') {
+          const message = step.config?.message || 'Workflow notification';
+          const to = step.config?.to || 'admin@example.com';
+          // The Hasura Event Trigger handles the actual Slack/Email sending in the background
+          stepResult = { to, message, sent: true };
         } else if (step.type === 'conditional_branch') {
           let branchResult = false;
           let prevText = "";

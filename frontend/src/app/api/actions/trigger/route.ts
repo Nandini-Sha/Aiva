@@ -74,11 +74,11 @@ export async function POST(request: Request) {
     // 4. Execute Steps via the shared engine (starts at index 0)
     const result = await executeWorkflowSteps(workflow, runId, 0, null);
 
-    return NextResponse.json({ run_id: runId, status: result.status });
+    return NextResponse.json({ success: true, run_id: runId, message: result.status });
 
   } catch (error: any) {
     console.error("Action error:", error);
-    return NextResponse.json({ message: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, message: error.message }, { status: 400 });
   }
 }
 

@@ -50,6 +50,25 @@ const SUBSCRIBE_RUN = gql`
   }
 `;
 
+const TRIGGER_RUN = gql`
+  mutation TriggerWorkflowRun($workflow_id: uuid!) {
+    triggerWorkflowRun(workflow_id: $workflow_id) {
+      success
+      message
+      run_id
+    }
+  }
+`;
+
+const APPROVE_STEP = gql`
+  mutation ApproveStep($step_run_id: uuid!) {
+    approveStep(step_run_id: $step_run_id) {
+      success
+      message
+    }
+  }
+`;
+
 export default function Dashboard() {
   const { isAuthenticated } = useAuthenticationStatus();
   const accessToken = useAccessToken();
@@ -61,6 +80,9 @@ export default function Dashboard() {
   // Apollo queries (only run when authenticated)
   const { data: workflowsData, loading: workflowsLoading } = useQuery(GET_WORKFLOWS, { skip: !isAuthenticated });
   const [activeWorkflowId, setActiveWorkflowId] = useState<string | null>(null);
+
+  const [triggerRun] = useMutation(TRIGGER_RUN);
+  const [approveStep] = useMutation(APPROVE_STEP);
 
   useEffect(() => {
     if (workflowsData?.workflows?.length > 0 && !activeWorkflowId) {
@@ -113,14 +135,14 @@ export default function Dashboard() {
     } else {
       if (!activeWorkflowId) return;
       try {
-        const res = await fetch('/api/actions/trigger', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
-          body: JSON.stringify({ input: { workflow_id: activeWorkflowId } })
-        });
-        const json = await res.json();
-        if (!res.ok) alert(json.message || 'Trigger failed');
-      } catch(e) { console.error(e); alert('Error triggering run'); }
+        const { data } = await triggerRun({ variables: { workflow_id: activeWorkflowId } });
+        if (!data?.triggerWorkflowRun?.success) {
+          alert(data?.triggerWorkflowRun?.message || 'Trigger failed');
+        }
+      } catch(e: any) { 
+        console.error(e); 
+        alert(e.message || 'Error triggering run'); 
+      }
     }
   };
 
@@ -137,14 +159,14 @@ export default function Dashboard() {
       const pausedStep = mappedSteps.find((s: any) => s.status === 'paused');
       if (!pausedStep || !pausedStep.stepRunId) return;
       try {
-        const res = await fetch('/api/actions/approve', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
-          body: JSON.stringify({ input: { step_run_id: pausedStep.stepRunId } })
-        });
-        const json = await res.json();
-        if (!res.ok) alert(json.message || 'Approve failed');
-      } catch(e) { console.error(e); alert('Error approving step'); }
+        const { data } = await approveStep({ variables: { step_run_id: pausedStep.stepRunId } });
+        if (!data?.approveStep?.success) {
+          alert(data?.approveStep?.message || 'Approve failed');
+        }
+      } catch(e: any) { 
+        console.error(e); 
+        alert(e.message || 'Error approving step'); 
+      }
     }
   };
 

@@ -102,7 +102,7 @@ export async function POST(request: Request) {
 
   } catch (error: any) {
     console.error("Action error:", error);
-    return NextResponse.json({ message: error.message }, { status: 500 });
+    return NextResponse.json({ success: false, message: error.message }, { status: 400 });
   }
 }
 

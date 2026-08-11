@@ -1,6 +1,19 @@
-actions: []
+actions:
+  - name: triggerWorkflowRun
+    definition:
+      handler: '{{FRONTEND_URL}}/api/actions/trigger'
+      output_type: ActionResponse
+      forward_client_headers: true
+      type: mutation
+  - name: approveStep
+    definition:
+      handler: '{{FRONTEND_URL}}/api/actions/approve'
+      output_type: ActionResponse
+      forward_client_headers: true
+      type: mutation
 custom_types:
   enums: []
   input_objects: []
-  objects: []
+  objects:
+    - name: ActionResponse
   scalars: []
