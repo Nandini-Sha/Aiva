@@ -23,8 +23,12 @@ export async function POST(req: Request) {
     await new Promise(resolve => setTimeout(resolve, 500));
 
     // 2. Fetch the user's ID via GraphQL (since signup response might not have it if email verification is on)
-    const graphqlUrl = process.env.NHOST_GRAPHQL_URL!;
-    const adminSecret = process.env.HASURA_GRAPHQL_ADMIN_SECRET!;
+    const graphqlUrl = process.env.NHOST_GRAPHQL_URL;
+    const adminSecret = process.env.HASURA_GRAPHQL_ADMIN_SECRET;
+
+    if (!graphqlUrl || !adminSecret) {
+      return NextResponse.json({ success: false, message: 'Server configuration error: Missing Hasura Admin Secret or GraphQL URL.' }, { status: 500 });
+    }
 
     const getUserQuery = `
       query GetUser($email: citext!) {
@@ -52,7 +56,7 @@ export async function POST(req: Request) {
     if (!newUserId) {
       // If user creation failed or they already exist, we should check that
       if (authData.error) {
-         return NextResponse.json({ success: false, message: authData.error.message }, { status: 400 });
+         return NextResponse.json({ success: false, message: authData.message || authData.error }, { status: 400 });
       }
       return NextResponse.json({ success: false, message: 'User created but could not retrieve ID for org mapping. They may need to verify their email first.' }, { status: 500 });
     }
