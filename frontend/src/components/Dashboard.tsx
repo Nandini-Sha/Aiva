@@ -536,6 +536,7 @@ export default function Dashboard() {
                   >
                     <option value="viewer">Viewer (Read Only)</option>
                     <option value="editor">Editor (Can edit & run workflows)</option>
+                    <option value="owner">Owner (Full Admin Access)</option>
                   </select>
                 </div>
                 <div className="pt-2">
