@@ -14,7 +14,7 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "AI Agent Workflow Builder",
+  title: "Aiva",
   description: "Chain AI steps with Nhost and Next.js",
 };
 
