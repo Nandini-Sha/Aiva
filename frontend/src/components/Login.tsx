@@ -42,57 +42,57 @@ export default function Login() {
 
   return (
     <div className="flex-1 flex items-center justify-center min-h-[70vh]">
-      <div className="w-full max-w-md p-8 sm:p-10 bg-slate-900/40 backdrop-blur-2xl border border-white/10 rounded-[2rem] shadow-2xl shadow-indigo-500/10 relative overflow-hidden">
-        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-        <div className="absolute -top-10 -right-10 w-40 h-40 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
+      <div className="w-full max-w-md p-8 sm:p-10 bg-white/80 backdrop-blur-2xl border border-stone-200 rounded-[2rem] shadow-2xl shadow-pink-500/5 relative overflow-hidden">
+        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-stone-200 to-transparent" />
+        <div className="absolute -top-10 -right-10 w-40 h-40 bg-pink-400/20 rounded-full blur-3xl pointer-events-none" />
 
         <div className="relative z-10">
-          <h2 className="text-3xl font-bold text-white mb-2 font-heading tracking-tight">
+          <h2 className="text-3xl font-bold text-stone-900 mb-2 font-heading tracking-tight">
             {isSignUp ? 'Create account' : 'Welcome back'}
           </h2>
-          <p className="text-slate-400 mb-8 text-sm">
+          <p className="text-stone-500 mb-8 text-sm">
             {isSignUp ? 'Sign up to start orchestrating AI workflows.' : 'Sign in to orchestrate your AI workflows.'}
           </p>
           
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-slate-300">Email Address</label>
+              <label className="block text-sm font-medium text-stone-700">Email Address</label>
               <input 
                 type="email" 
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="w-full bg-slate-950/50 border border-white/5 text-white px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all placeholder:text-slate-600"
+                className="w-full bg-white border border-stone-200 text-stone-900 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500/30 focus:border-pink-500 transition-all placeholder:text-stone-400"
                 required
               />
             </div>
             
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-slate-300">Password</label>
+              <label className="block text-sm font-medium text-stone-700">Password</label>
               <input 
                 type="password" 
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full bg-slate-950/50 border border-white/5 text-white px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all placeholder:text-slate-600"
+                className="w-full bg-white border border-stone-200 text-stone-900 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500/30 focus:border-pink-500 transition-all placeholder:text-stone-400"
                 required
                 minLength={isSignUp ? 9 : undefined}
               />
-              {isSignUp && <p className="text-xs text-slate-500">Minimum 9 characters</p>}
+              {isSignUp && <p className="text-xs text-stone-400">Minimum 9 characters</p>}
             </div>
 
             {isSignUp && (
               <div className="space-y-1.5">
-                <label className="block text-sm font-medium text-slate-300">Organization Name</label>
+                <label className="block text-sm font-medium text-stone-700">Organization Name</label>
                 <input 
                   type="text" 
                   value={orgName}
                   onChange={(e) => setOrgName(e.target.value)}
                   placeholder="My Company"
-                  className="w-full bg-slate-950/50 border border-white/5 text-white px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all placeholder:text-slate-600"
+                  className="w-full bg-white border border-stone-200 text-stone-900 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-500/30 focus:border-pink-500 transition-all placeholder:text-stone-400"
                   required={isSignUp}
                 />
-                <p className="text-xs text-slate-500">You'll be the owner of this organization</p>
+                <p className="text-xs text-stone-400">You'll be the owner of this organization</p>
               </div>
             )}
 
@@ -108,17 +108,17 @@ export default function Login() {
             <button 
               type="submit" 
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-semibold py-3 rounded-xl transition-all disabled:opacity-50 hover:scale-[1.02] hover:shadow-lg hover:shadow-indigo-500/25 active:scale-[0.98]"
+              className="w-full bg-gradient-to-r from-yellow-400 via-amber-400 to-pink-500 hover:from-yellow-300 hover:via-amber-300 hover:to-pink-400 text-white font-semibold py-3 rounded-xl transition-all disabled:opacity-50 hover:scale-[1.02] hover:shadow-lg hover:shadow-pink-500/25 active:scale-[0.98]"
             >
               {isLoading ? (isSignUp ? 'Creating account...' : 'Authenticating...') : (isSignUp ? 'Create Account' : 'Sign In')}
             </button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-slate-500">
+          <p className="mt-6 text-center text-sm text-stone-500">
             {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
             <button
               onClick={() => { setIsSignUp(!isSignUp); setEmail(''); setPassword(''); setOrgName(''); setSetupError(''); }}
-              className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors"
+              className="text-pink-500 hover:text-pink-400 font-medium transition-colors"
             >
               {isSignUp ? 'Sign in' : 'Sign up'}
             </button>

@@ -44,10 +44,10 @@ export default function Home() {
 
   if (!mounted || isCreatingOrg) {
     return (
-      <main className="min-h-screen flex flex-col bg-slate-950 text-slate-50 overflow-hidden relative">
+      <main className="min-h-screen flex flex-col bg-stone-50 text-stone-900 overflow-hidden relative">
         <div className="flex-1 flex items-center justify-center flex-col gap-4">
-          <div className="w-10 h-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-          <div className="text-slate-400 font-medium tracking-wide">
+          <div className="w-10 h-10 border-4 border-pink-400 border-t-transparent rounded-full animate-spin" />
+          <div className="text-stone-500 font-medium tracking-wide">
             {isCreatingOrg ? 'Setting up your organization...' : 'Loading...'}
           </div>
         </div>
@@ -56,24 +56,24 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen flex flex-col relative overflow-hidden bg-slate-950 font-sans">
+    <main className="min-h-screen flex flex-col relative overflow-hidden bg-stone-50 font-sans">
       {/* Dynamic Mesh Gradients */}
       <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-indigo-600/20 blur-[120px] mix-blend-screen" />
-        <div className="absolute top-[20%] -right-[10%] w-[60%] h-[60%] rounded-full bg-emerald-600/10 blur-[120px] mix-blend-screen" />
-        <div className="absolute -bottom-[20%] left-[20%] w-[50%] h-[50%] rounded-full bg-purple-600/20 blur-[120px] mix-blend-screen" />
+        <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] rounded-full bg-yellow-300/40 blur-[120px] mix-blend-multiply" />
+        <div className="absolute top-[20%] -right-[10%] w-[60%] h-[60%] rounded-full bg-pink-300/30 blur-[120px] mix-blend-multiply" />
+        <div className="absolute -bottom-[20%] left-[20%] w-[50%] h-[50%] rounded-full bg-amber-300/40 blur-[120px] mix-blend-multiply" />
       </div>
       
       <div className="relative z-10 flex-1 flex flex-col">
-        <header className="sticky top-0 z-50 border-b border-white/5 bg-slate-950/50 backdrop-blur-xl">
+        <header className="sticky top-0 z-50 border-b border-stone-200/60 bg-white/60 backdrop-blur-xl shadow-sm">
           <div className="container mx-auto px-4 md:px-8 py-4 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-emerald-500 p-[1px] shadow-lg shadow-indigo-500/20">
-                <div className="w-full h-full bg-slate-950 rounded-2xl flex items-center justify-center overflow-hidden">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-yellow-400 via-amber-400 to-pink-500 p-[1px] shadow-lg shadow-pink-500/20">
+                <div className="w-full h-full bg-white rounded-2xl flex items-center justify-center overflow-hidden">
                   <img src="/logo.jpg" alt="Aiva Logo" className="w-full h-full object-contain" />
                 </div>
               </div>
-              <h1 className="text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-200 to-slate-400 font-heading">
+              <h1 className="text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-stone-900 via-stone-700 to-stone-500 font-heading">
                 Aiva
               </h1>
             </div>
