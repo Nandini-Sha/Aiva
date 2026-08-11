@@ -1427,8 +1427,11 @@ async function applyMetadata() {
     },
     body: JSON.stringify({
       type: 'replace_metadata',
-      version: metadata.version,
-      args: metadata
+      version: 2,
+      args: {
+        allow_inconsistent_metadata: true,
+        metadata: metadata
+      }
     })
   });
 
