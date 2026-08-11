@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+
 import { executeGraphQL, executeWorkflowSteps } from '../../../../lib/engine';
 
 export async function POST(request: Request) {
@@ -6,7 +7,22 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { session_variables, input } = body;
     const { workflow_id } = input;
-    const userId = session_variables['x-hasura-user-id'];
+    const userId = (() => {
+      const sessionId = session_variables?.['x-hasura-user-id'];
+      if (sessionId) return sessionId;
+      const authHeader = request.headers.get('authorization');
+      if (!authHeader?.startsWith('Bearer ')) return null;
+      const token = authHeader.split(' ')[1];
+      if (!token) return null;
+      const parts = token.split('.');
+      if (parts.length < 2) return null;
+      try {
+        const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+        return payload['sub'] ?? payload['x-hasura-user-id'] ?? null;
+      } catch {
+        return null;
+      }
+    })();
 
     // 1. Get workflow details and verify org role (Layer 2 gating)
     const workflowData = await executeGraphQL(`

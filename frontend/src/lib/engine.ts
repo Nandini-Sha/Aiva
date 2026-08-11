@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
-const HASURA_GRAPHQL_ENDPOINT = process.env.NEXT_PUBLIC_NHOST_GRAPHQL_URL || 'http://localhost:8080/v1/graphql';
-const HASURA_ADMIN_SECRET = process.env.NHOST_ADMIN_SECRET || 'nhost-admin-secret';
+const HASURA_GRAPHQL_ENDPOINT = process.env.NEXT_PUBLIC_NHOST_GRAPHQL_URL!;
+const HASURA_ADMIN_SECRET = process.env.NHOST_ADMIN_SECRET!;
 
 export async function executeGraphQL(query: string, variables: any = {}) {
   const res = await fetch(HASURA_GRAPHQL_ENDPOINT, {
@@ -77,6 +77,19 @@ export async function executeWorkflowSteps(workflow: any, runId: string, startIn
           const llmData: any = await llmResponse.json();
           stepResult = { text: llmData.choices?.[0]?.message?.content || "No content returned" };
 
+        } else if (step.type === 'db_write') {
+          // Expect config: { key: string, value: string }
+          const key = step.config?.key;
+          const value = step.config?.value;
+          if (key === undefined || value === undefined) {
+            throw new Error('db_write step requires key and value in config');
+          }
+          const insertRes = await executeGraphQL(`
+            mutation InsertOutput($runId: uuid!, $key: text!, $value: text!) {
+              insert_workflow_outputs_one(object: {workflow_run_id: $runId, key: $key, value: $value}) { id }
+            }
+          `, { runId, key, value });
+          stepResult = { insertedId: insertRes.insert_workflow_outputs_one.id, key, value };
         } else if (step.type === 'http_request') {
           const url = step.config?.url || 'https://httpbin.org/get';
           const method = step.config?.method || 'GET';

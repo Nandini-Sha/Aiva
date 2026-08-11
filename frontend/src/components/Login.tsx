@@ -15,59 +15,74 @@ export default function Login({ onSimulatorClick }: { onSimulatorClick: () => vo
   };
 
   return (
-    <div className="flex-1 flex items-center justify-center min-h-[60vh]">
-      <div className="w-full max-w-md p-8 bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl">
-        <h2 className="text-2xl font-bold text-white mb-2">Sign In</h2>
-        <p className="text-slate-400 mb-6">Authenticate via Nhost to secure your GraphQL requests.</p>
-        
-        <form onSubmit={handleLogin} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Email</label>
-            <input 
-              type="email" 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-slate-800 border border-slate-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              required
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-1">Password</label>
-            <input 
-              type="password" 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-slate-800 border border-slate-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              required
-            />
-          </div>
+    <div className="flex-1 flex items-center justify-center min-h-[70vh]">
+      <div className="w-full max-w-md p-8 sm:p-10 bg-slate-900/40 backdrop-blur-2xl border border-white/10 rounded-[2rem] shadow-2xl shadow-indigo-500/10 relative overflow-hidden">
+        {/* Subtle decorative glow inside card */}
+        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+        <div className="absolute -top-10 -right-10 w-40 h-40 bg-indigo-500/20 rounded-full blur-3xl pointer-events-none" />
 
-          {isError && (
-            <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg text-sm">
-              {error?.message}
+        <div className="relative z-10">
+          <h2 className="text-3xl font-bold text-white mb-2 font-heading tracking-tight">Welcome back</h2>
+          <p className="text-slate-400 mb-8 text-sm">Sign in to orchestrate your AI workflows.</p>
+          
+          <form onSubmit={handleLogin} className="space-y-5">
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-slate-300">Email Address</label>
+              <div className="relative">
+                <input 
+                  type="email" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  className="w-full bg-slate-950/50 border border-white/5 text-white px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all placeholder:text-slate-600"
+                  required
+                />
+              </div>
             </div>
-          )}
+            
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-slate-300">Password</label>
+              <div className="relative">
+                <input 
+                  type="password" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full bg-slate-950/50 border border-white/5 text-white px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-all placeholder:text-slate-600"
+                  required
+                />
+              </div>
+            </div>
+
+            {isError && (
+              <div className="p-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-xl text-sm flex items-start gap-2">
+                <svg className="w-5 h-5 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                {error?.message}
+              </div>
+            )}
+
+            <button 
+              type="submit" 
+              disabled={isLoading}
+              className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-semibold py-3 rounded-xl transition-all disabled:opacity-50 hover:scale-[1.02] hover:shadow-lg hover:shadow-indigo-500/25 active:scale-[0.98]"
+            >
+              {isLoading ? 'Authenticating...' : 'Sign In'}
+            </button>
+          </form>
+
+          <div className="mt-8 flex items-center gap-4 before:flex-1 before:h-px before:bg-gradient-to-r before:from-transparent before:to-white/10 after:flex-1 after:h-px after:bg-gradient-to-l after:from-transparent after:to-white/10">
+            <span className="text-xs text-slate-500 uppercase tracking-widest font-medium">or</span>
+          </div>
 
           <button 
-            type="submit" 
-            disabled={isLoading}
-            className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2.5 rounded-lg transition-colors disabled:opacity-50"
+            onClick={onSimulatorClick}
+            className="mt-8 w-full bg-slate-800/50 hover:bg-slate-700/50 text-slate-300 hover:text-white font-medium py-3 rounded-xl border border-white/5 hover:border-white/10 transition-all hover:scale-[1.02] active:scale-[0.98]"
           >
-            {isLoading ? 'Signing in...' : 'Sign In'}
+            Continue with Simulator Mode
           </button>
-        </form>
-
-        <div className="mt-6 flex items-center gap-4 before:flex-1 before:h-px before:bg-white/10 after:flex-1 after:h-px after:bg-white/10">
-          <span className="text-xs text-slate-500 uppercase tracking-wider">or</span>
         </div>
-
-        <button 
-          onClick={onSimulatorClick}
-          className="mt-6 w-full bg-slate-800 hover:bg-slate-700 text-white font-medium py-2.5 rounded-lg border border-white/10 transition-colors"
-        >
-          Continue with Simulator Mode
-        </button>
       </div>
     </div>
   );
