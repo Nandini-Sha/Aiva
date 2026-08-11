@@ -452,7 +452,9 @@ export default function Dashboard() {
                 <div className="flex items-start gap-3 relative z-10">
                   <ShieldAlert className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
                   <div className="text-sm font-medium text-amber-800 leading-relaxed">
-                    Run is paused at an Approval Gate. Requires Owner or Editor approval to proceed.
+                    <span className="block font-bold mb-1">Approval Required</span>
+                    {mappedSteps.find((s: any) => s.status === 'paused')?.config?.message || 
+                     'Run is paused at an Approval Gate. Requires Owner or Editor approval to proceed.'}
                   </div>
                 </div>
                 <button 
