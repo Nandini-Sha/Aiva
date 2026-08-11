@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import { executeGraphQL, executeWorkflowSteps } from '../../../../../lib/engine';
 
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id: workflow_id } = params;
+    const { id: workflow_id } = await params;
     const body = await request.json();
     const { session_variables } = body || {};
     const userId = session_variables?.['x-hasura-user-id'];
