@@ -77,7 +77,6 @@ export default function Home() {
                 Aiva
               </h1>
             </div>
-            </div>
           </div>
         </header>
 
