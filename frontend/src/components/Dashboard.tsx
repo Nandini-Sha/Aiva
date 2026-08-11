@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Play, Pause, CheckCircle, Clock, Settings, Zap, Users, ShieldAlert, Key, Plus } from 'lucide-react';
 import { useAuthenticationStatus, useAccessToken, useUserData, useSignOut } from '@nhost/nextjs';
-import { gql, useQuery, useSubscription } from '@apollo/client';
+import { gql, useQuery, useSubscription, useMutation } from '@apollo/client';
 
 const mockUsers = [
   { id: 'user-1', name: 'Alice (Org A - Owner)', role: 'owner', org: 'Org A' },
