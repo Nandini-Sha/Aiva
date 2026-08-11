@@ -5,12 +5,16 @@ actions:
       output_type: ActionResponse
       forward_client_headers: true
       type: mutation
+    permissions:
+      - role: user
   - name: approveStep
     definition:
       handler: '{{FRONTEND_URL}}/api/actions/approve'
       output_type: ActionResponse
       forward_client_headers: true
       type: mutation
+    permissions:
+      - role: user
 custom_types:
   enums: []
   input_objects: []
