@@ -22,6 +22,13 @@ const GET_WORKFLOWS = gql`
         config
       }
     }
+    org_members {
+      org_id
+      role
+      organization {
+        name
+      }
+    }
   }
 `;
 
@@ -217,38 +224,92 @@ export default function Dashboard() {
       <div className="grid lg:grid-cols-3 gap-8">
         {/* Left Column - Workflow Builder */}
         <div className="lg:col-span-2 flex flex-col gap-5">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <h2 className="text-2xl font-bold font-heading">Workflows</h2>
-              {isAuthenticated && workflowsData?.workflows?.length > 0 && (
-                <select 
-                  className="bg-slate-950/80 border border-white/10 text-white text-sm rounded-xl focus:ring-2 focus:ring-indigo-500 p-2 shadow-inner"
-                  value={activeWorkflowId || ''}
-                  onChange={(e) => setActiveWorkflowId(e.target.value)}
-                >
-                  {workflowsData.workflows.map((w: any) => (
-                    <option key={w.id} value={w.id}>{w.name}</option>
-                  ))}
-                </select>
-              )}
-            </div>
-            <div className="flex items-center gap-2">
-              <a href="/workflows/create" className="flex items-center gap-1 bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 px-4 py-2.5 rounded-xl text-sm font-medium transition-all">
-                <Plus className="w-4 h-4" /> New
-              </a>
-              {(!isMock && currentUser.role !== 'viewer') || (isMock && currentUser.role !== 'viewer') ? (
-                <button onClick={handleRun} disabled={runStatus === 'running'} className="flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-400 hover:to-indigo-500 disabled:opacity-50 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 hover:scale-[1.02] active:scale-[0.98]">
-                  <Play className="w-4 h-4 fill-current" /> Run
+          {!isMock && workflowsData && workflowsData.org_members?.length === 0 ? (
+            <div className="glass-panel p-8 rounded-3xl flex flex-col items-center justify-center text-center gap-4 border border-indigo-500/20">
+              <div className="w-16 h-16 rounded-full bg-indigo-500/20 flex items-center justify-center mb-2">
+                <Users className="w-8 h-8 text-indigo-400" />
+              </div>
+              <h3 className="text-2xl font-bold text-white font-heading">You need an Organization</h3>
+              <p className="text-slate-400 max-w-md">
+                To create and run workflows, you must belong to an organization. Create one below to get started as an owner.
+              </p>
+              <form 
+                className="w-full max-w-sm mt-4 flex flex-col gap-3"
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  const form = e.target as HTMLFormElement;
+                  const input = form.elements.namedItem('orgName') as HTMLInputElement;
+                  const btn = form.elements.namedItem('submitBtn') as HTMLButtonElement;
+                  if (!input.value) return;
+                  btn.disabled = true;
+                  btn.textContent = 'Creating...';
+                  try {
+                    const res = await fetch('/api/org/create', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ userId: userData?.id, orgName: input.value })
+                    });
+                    if (res.ok) {
+                      window.location.reload();
+                    } else {
+                      const data = await res.json();
+                      alert(data.message || 'Failed to create organization');
+                      btn.disabled = false;
+                      btn.textContent = 'Create Organization';
+                    }
+                  } catch (err) {
+                    alert('Error creating organization');
+                    btn.disabled = false;
+                    btn.textContent = 'Create Organization';
+                  }
+                }}
+              >
+                <input 
+                  name="orgName"
+                  type="text" 
+                  required
+                  placeholder="My Company Name" 
+                  className="w-full bg-slate-950/50 border border-white/10 text-white px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                <button name="submitBtn" type="submit" className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-xl transition-all">
+                  Create Organization
                 </button>
-              ) : (
-                <div className="flex items-center gap-2 text-slate-400 bg-white/5 px-4 py-2 rounded-xl text-sm border border-white/10 font-medium">
-                  <ShieldAlert className="w-4 h-4" /> Viewer Mode
-                </div>
-              )}
+              </form>
             </div>
-          </div>
-          
-          <div className="glass-panel p-2 rounded-3xl">
+          ) : (
+            <>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <h2 className="text-2xl font-bold font-heading">Workflows</h2>
+                  {isAuthenticated && workflowsData?.workflows?.length > 0 && (
+                    <select 
+                      className="bg-slate-950/80 border border-white/10 text-white text-sm rounded-xl focus:ring-2 focus:ring-indigo-500 p-2 shadow-inner"
+                      value={activeWorkflowId || ''}
+                      onChange={(e) => setActiveWorkflowId(e.target.value)}
+                    >
+                      {workflowsData.workflows.map((w: any) => (
+                        <option key={w.id} value={w.id}>{w.name}</option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <a href="/workflows/create" className="flex items-center gap-1 bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 px-4 py-2.5 rounded-xl text-sm font-medium transition-all">
+                    <Plus className="w-4 h-4" /> New
+                  </a>
+                  {(!isMock && currentUser.role !== 'viewer') || (isMock && currentUser.role !== 'viewer') ? (
+                    <button onClick={handleRun} disabled={runStatus === 'running'} className="flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-400 hover:to-indigo-500 disabled:opacity-50 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 hover:scale-[1.02] active:scale-[0.98]">
+                      <Play className="w-4 h-4 fill-current" /> Run
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-2 text-slate-400 bg-white/5 px-4 py-2 rounded-xl text-sm border border-white/10 font-medium">
+                      <ShieldAlert className="w-4 h-4" /> Viewer Mode
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <div className="glass-panel p-2 rounded-3xl">
             <div className="bg-slate-950/80 rounded-[1.25rem] p-6 min-h-[400px] border border-white/5 flex flex-col gap-5 relative">
               {mappedSteps.length > 0 ? (
                 <>
@@ -292,6 +353,8 @@ export default function Dashboard() {
               )}
             </div>
           </div>
+          </>
+          )}
         </div>
 
         {/* Right Column - Live Run Viewer */}
