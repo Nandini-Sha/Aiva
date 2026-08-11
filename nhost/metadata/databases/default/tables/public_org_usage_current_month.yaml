@@ -1,0 +1,3 @@
+table:
+  name: org_usage_current_month
+  schema: public
