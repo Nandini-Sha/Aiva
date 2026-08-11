@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useSignInEmailPassword, useSignUpEmailPassword } from '@nhost/nextjs';
 
-export default function Login({ onSimulatorClick }: { onSimulatorClick: () => void }) {
+export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [orgName, setOrgName] = useState('');
@@ -124,16 +124,7 @@ export default function Login({ onSimulatorClick }: { onSimulatorClick: () => vo
             </button>
           </p>
 
-          <div className="mt-6 flex items-center gap-4 before:flex-1 before:h-px before:bg-gradient-to-r before:from-transparent before:to-white/10 after:flex-1 after:h-px after:bg-gradient-to-l after:from-transparent after:to-white/10">
-            <span className="text-xs text-slate-500 uppercase tracking-widest font-medium">or</span>
-          </div>
 
-          <button 
-            onClick={onSimulatorClick}
-            className="mt-6 w-full bg-slate-800/50 hover:bg-slate-700/50 text-slate-300 hover:text-white font-medium py-3 rounded-xl border border-white/5 hover:border-white/10 transition-all hover:scale-[1.02] active:scale-[0.98]"
-          >
-            Continue with Simulator Mode
-          </button>
         </div>
       </div>
     </div>

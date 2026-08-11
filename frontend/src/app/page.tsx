@@ -8,7 +8,7 @@ import Login from "@/components/Login";
 export default function Home() {
   const { isAuthenticated, isLoading } = useAuthenticationStatus();
   const userData = useUserData();
-  const [useSimulator, setUseSimulator] = useState(false);
+
   const [mounted, setMounted] = useState(false);
   const [isCreatingOrg, setIsCreatingOrg] = useState(false);
 
@@ -81,9 +81,9 @@ export default function Home() {
             </div>
             <div className="flex items-center gap-4">
               <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
-                <div className={`w-2 h-2 rounded-full ${isAuthenticated ? 'bg-emerald-400 animate-pulse' : useSimulator ? 'bg-amber-400 animate-pulse' : 'bg-slate-600'}`} />
+                <div className={`w-2 h-2 rounded-full ${isAuthenticated ? 'bg-emerald-400 animate-pulse' : 'bg-slate-600'}`} />
                 <span className="text-xs font-medium text-slate-300">
-                  {isAuthenticated ? 'Connected to Nhost' : useSimulator ? 'Simulator Active' : 'Offline'}
+                  {isAuthenticated ? 'Connected to Nhost' : 'Offline'}
                 </span>
               </div>
             </div>
@@ -94,8 +94,8 @@ export default function Home() {
 
         {isLoading ? (
           <div className="flex-1 flex items-center justify-center">Loading...</div>
-        ) : (!isAuthenticated && !useSimulator) ? (
-          <Login onSimulatorClick={() => setUseSimulator(true)} />
+        ) : (!isAuthenticated) ? (
+          <Login />
         ) : (
           <Dashboard />
         )}
