@@ -8,28 +8,6 @@ object_relationships:
   - name: workflow_step
     using:
       foreign_key_constraint_on: step_id
-insert_permissions:
-  - role: admin
-    permission:
-      check: {}
-      columns:
-        - workflow_run_id
-        - step_id
-        - status
-        - input
-update_permissions:
-  - role: admin
-    permission:
-      columns:
-        - status
-        - output
-        - error
-        - attempt_count
-        - completed_at
-        - approved_by
-        - approved_at
-      filter: {}
-      check: null
 event_triggers:
   - name: notify_step_trigger
     definition:
