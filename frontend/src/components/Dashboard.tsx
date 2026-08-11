@@ -20,6 +20,7 @@ const GET_WORKFLOWS = gql`
     }
     org_members {
       org_id
+      user_id
       role
       organization {
         name
@@ -95,7 +96,10 @@ export default function Dashboard() {
   });
 
   // Derived state
-  const userRole = workflowsData?.org_members?.[0]?.role;
+  const currentMember = workflowsData?.org_members?.find((m: any) => m.user_id === userData?.id);
+  const userRole = currentMember?.role;
+  const orgName = currentMember?.organization?.name;
+  const orgId = currentMember?.org_id;
   const activeWorkflow = workflowsData?.workflows.find((w: any) => w.id === activeWorkflowId);
   const latestRun = runData?.workflow_runs?.[0];
   const runStatus = latestRun?.status || 'idle';
@@ -141,7 +145,6 @@ export default function Dashboard() {
 
   // Fetch members for table
   const [members, setMembers] = useState<any[]>([]);
-  const orgId = workflowsData?.org_members?.[0]?.org_id;
 
   useEffect(() => {
     if (orgId && userRole === 'owner') {
@@ -170,10 +173,10 @@ export default function Dashboard() {
                 <span className="text-sm font-medium text-stone-600">
                   Logged in as <strong className="text-stone-900 text-base ml-1">{userData?.displayName || userData?.email}</strong>
                 </span>
-                {workflowsData?.org_members?.[0]?.organization?.name && (
+                {orgName && (
                   <div className="flex items-center gap-2">
                     <span className="px-2.5 py-1 bg-yellow-100 text-yellow-700 border border-yellow-200 text-xs font-bold rounded-lg tracking-wide uppercase inline-flex self-start">
-                      {workflowsData.org_members[0].organization.name}
+                      {orgName}
                     </span>
                     <span className="px-2.5 py-1 bg-pink-100 text-pink-700 border border-pink-200 text-xs font-bold rounded-lg tracking-wide uppercase inline-flex self-start">
                       {userRole}
@@ -282,9 +285,11 @@ export default function Dashboard() {
                   )}
                 </div>
                 <div className="flex items-center gap-2">
-                  <a href="/workflows/create" className="flex items-center gap-1 bg-white hover:bg-stone-50 text-stone-700 border border-stone-200 px-4 py-2.5 rounded-xl text-sm font-medium transition-all shadow-sm">
-                    <Plus className="w-4 h-4" /> New
-                  </a>
+                  {userRole !== 'viewer' && (
+                    <a href="/workflows/create" className="flex items-center gap-1 bg-white hover:bg-stone-50 text-stone-700 border border-stone-200 px-4 py-2.5 rounded-xl text-sm font-medium transition-all shadow-sm">
+                      <Plus className="w-4 h-4" /> New
+                    </a>
+                  )}
                   {(userRole !== 'viewer') ? (
                     <>
                       {activeWorkflowId && (
@@ -469,7 +474,7 @@ export default function Dashboard() {
             <button
               onClick={async () => {
                 const confirmOrg = prompt('DANGER: Deleting your organization will remove all workflows and members. Type your org name to confirm:');
-                if (confirmOrg === workflowsData?.org_members?.[0]?.organization?.name) {
+                if (confirmOrg === orgName) {
                   const res = await fetch('/api/org/delete', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
