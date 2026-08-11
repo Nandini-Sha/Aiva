@@ -32,7 +32,7 @@ export async function POST(req: Request) {
 
     const getUserQuery = `
       query GetUser($email: citext!) {
-        users(where: { email: { _eq: $email } }) {
+        auth_users(where: { email: { _eq: $email } }) {
           id
         }
       }
@@ -51,7 +51,7 @@ export async function POST(req: Request) {
     });
 
     const userData = await userRes.json();
-    const newUserId = userData.data?.users?.[0]?.id;
+    const newUserId = userData.data?.auth_users?.[0]?.id;
 
     if (!newUserId) {
       // If user creation failed or they already exist, we should check that
