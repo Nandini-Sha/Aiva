@@ -48,7 +48,7 @@ export async function executeWorkflowSteps(workflow: any, runId: string, startIn
         if (step.type === 'llm_call') {
           const apiKey = process.env.LLM_API_KEY;
           const baseUrl = process.env.LLM_BASE_URL || step.config?.base_url || 'https://api.groq.com/openai/v1/chat/completions';
-          const model = step.config?.model || process.env.LLM_MODEL || 'llama3-8b-8192';
+          const model = step.config?.model || process.env.LLM_MODEL || 'llama-3.1-8b-instant';
 
           if (!apiKey) {
             throw new Error("LLM_API_KEY environment variable is missing.");
