@@ -1,7 +1,7 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Organizations
-CREATE TABLE organizations (
+CREATE TABLE IF NOT EXISTS organizations (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name TEXT NOT NULL,
     quota_allowed INTEGER NOT NULL DEFAULT 100,
@@ -13,7 +13,7 @@ CREATE TABLE organizations (
 -- Users (assuming Nhost Auth `auth.users` exists, we just reference the ID or we can create a public.users if we want to mimic it, but Hasura allows cross-schema relationships to auth.users. For simplicity, we just use UUID for user_id in org_members).
 
 -- Org Members
-CREATE TABLE org_members (
+CREATE TABLE IF NOT EXISTS org_members (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     org_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
     user_id UUID NOT NULL, -- references auth.users(id) in Nhost
@@ -23,7 +23,7 @@ CREATE TABLE org_members (
 );
 
 -- Workflows
-CREATE TABLE workflows (
+CREATE TABLE IF NOT EXISTS workflows (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     org_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
@@ -33,7 +33,7 @@ CREATE TABLE workflows (
 );
 
 -- Workflow Steps
-CREATE TABLE workflow_steps (
+CREATE TABLE IF NOT EXISTS workflow_steps (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     workflow_id UUID NOT NULL REFERENCES workflows(id) ON DELETE CASCADE,
     type TEXT NOT NULL CHECK (type IN ('llm_call', 'http_request', 'db_write', 'notify', 'conditional_branch', 'approval_gate')),
@@ -44,7 +44,7 @@ CREATE TABLE workflow_steps (
 );
 
 -- Workflow Triggers
-CREATE TABLE workflow_triggers (
+CREATE TABLE IF NOT EXISTS workflow_triggers (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     workflow_id UUID NOT NULL REFERENCES workflows(id) ON DELETE CASCADE,
     type TEXT NOT NULL CHECK (type IN ('manual', 'webhook', 'scheduled', 'db_event')),
@@ -53,7 +53,7 @@ CREATE TABLE workflow_triggers (
 );
 
 -- Workflow Runs
-CREATE TABLE workflow_runs (
+CREATE TABLE IF NOT EXISTS workflow_runs (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     workflow_id UUID NOT NULL REFERENCES workflows(id) ON DELETE CASCADE,
     status TEXT NOT NULL CHECK (status IN ('running', 'paused', 'completed', 'failed')),
@@ -62,7 +62,7 @@ CREATE TABLE workflow_runs (
 );
 
 -- Step Runs
-CREATE TABLE step_runs (
+CREATE TABLE IF NOT EXISTS step_runs (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     workflow_run_id UUID NOT NULL REFERENCES workflow_runs(id) ON DELETE CASCADE,
     step_id UUID NOT NULL REFERENCES workflow_steps(id) ON DELETE CASCADE,
@@ -86,20 +86,23 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS set_organizations_updated_at ON organizations;
 CREATE TRIGGER set_organizations_updated_at
 BEFORE UPDATE ON organizations
 FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
+DROP TRIGGER IF EXISTS set_workflows_updated_at ON workflows;
 CREATE TRIGGER set_workflows_updated_at
 BEFORE UPDATE ON workflows
 FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
+DROP TRIGGER IF EXISTS set_workflow_steps_updated_at ON workflow_steps;
 CREATE TRIGGER set_workflow_steps_updated_at
 BEFORE UPDATE ON workflow_steps
 FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
 -- Aggregation: Org usage this month (View)
-CREATE VIEW org_usage_current_month AS
+CREATE OR REPLACE VIEW org_usage_current_month AS
 SELECT 
     org_id, 
     COUNT(wr.id) AS runs_this_month 
