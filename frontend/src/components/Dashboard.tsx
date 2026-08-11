@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Play, Pause, CheckCircle, Clock, Settings, Zap, Users, ShieldAlert, Key, Plus } from 'lucide-react';
+import { Play, Pause, CheckCircle, Clock, Settings, Zap, Users, ShieldAlert, Key, Plus, Pencil, Trash2 } from 'lucide-react';
 import { useAuthenticationStatus, useAccessToken, useUserData, useSignOut, useChangePassword } from '@nhost/nextjs';
 import { gql, useQuery, useSubscription, useMutation } from '@apollo/client';
 
@@ -135,6 +135,20 @@ export default function Dashboard() {
     }
   };
 
+  // Fetch members for table
+  const [members, setMembers] = useState<any[]>([]);
+  const orgId = workflowsData?.org_members?.[0]?.org_id;
+
+  useEffect(() => {
+    if (orgId && userRole === 'owner') {
+      fetch(`/api/org/members?orgId=${orgId}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) setMembers(data.members);
+        });
+    }
+  }, [orgId, userRole]);
+
   if (!isAuthenticated) return null;
 
   return (
@@ -263,9 +277,33 @@ export default function Dashboard() {
                     <Plus className="w-4 h-4" /> New
                   </a>
                   {(userRole !== 'viewer') ? (
-                    <button onClick={handleRun} disabled={runStatus === 'running'} className="flex items-center gap-2 bg-gradient-to-r from-yellow-400 to-pink-500 hover:from-yellow-300 hover:to-pink-400 disabled:opacity-50 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-pink-500/20 hover:shadow-pink-500/40 hover:scale-[1.02] active:scale-[0.98]">
-                      <Play className="w-4 h-4 fill-current" /> Run
-                    </button>
+                    <>
+                      {activeWorkflowId && (
+                        <>
+                          <a href={`/workflows/${activeWorkflowId}/edit`} className="flex items-center justify-center p-2.5 bg-white hover:bg-blue-50 text-stone-400 hover:text-blue-500 border border-stone-200 hover:border-blue-200 rounded-xl transition-all shadow-sm">
+                            <Pencil className="w-4 h-4" />
+                          </a>
+                          <button 
+                            onClick={async () => {
+                              if (confirm('Are you sure you want to delete this workflow?')) {
+                                const res = await fetch('/api/workflows/delete', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ workflowId: activeWorkflowId })
+                                });
+                                if (res.ok) window.location.reload();
+                                else alert('Failed to delete workflow');
+                              }
+                            }}
+                            className="flex items-center justify-center p-2.5 bg-white hover:bg-red-50 text-stone-400 hover:text-red-500 border border-stone-200 hover:border-red-200 rounded-xl transition-all shadow-sm">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </>
+                      )}
+                      <button onClick={handleRun} disabled={runStatus === 'running'} className="flex items-center gap-2 bg-gradient-to-r from-yellow-400 to-pink-500 hover:from-yellow-300 hover:to-pink-400 disabled:opacity-50 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-pink-500/20 hover:shadow-pink-500/40 hover:scale-[1.02] active:scale-[0.98]">
+                        <Play className="w-4 h-4 fill-current" /> Run
+                      </button>
+                    </>
                   ) : (
                     <div className="flex items-center gap-2 text-stone-500 bg-stone-100 px-4 py-2 rounded-xl text-sm border border-stone-200 font-medium shadow-sm">
                       <ShieldAlert className="w-4 h-4" /> Viewer Mode
@@ -391,56 +429,81 @@ export default function Dashboard() {
       {/* Team Settings (Owner Only) */}
       {userRole === 'owner' && (
         <div className="mt-4 border-t border-stone-200/50 pt-8">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-pink-100 rounded-xl border border-pink-200">
-              <Users className="w-5 h-5 text-pink-500" />
+          <div className="flex items-center justify-between gap-3 mb-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-pink-100 rounded-xl border border-pink-200">
+                <Users className="w-5 h-5 text-pink-500" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold font-heading text-stone-900">Team Settings</h2>
+                <p className="text-sm text-stone-500">Manage your organization's members.</p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-2xl font-bold font-heading text-stone-900">Team Settings</h2>
-              <p className="text-sm text-stone-500">Invite new members to your organization.</p>
-            </div>
-          </div>
-          
-          <div className="glass-panel rounded-3xl p-6 md:p-8 max-w-2xl bg-white/50">
-            <form
-              onSubmit={async (e) => {
-                e.preventDefault();
-                const form = e.target as HTMLFormElement;
-                const email = (form.elements.namedItem('inviteEmail') as HTMLInputElement).value;
-                const password = (form.elements.namedItem('invitePassword') as HTMLInputElement).value;
-                const role = (form.elements.namedItem('inviteRole') as HTMLSelectElement).value;
-                const btn = form.elements.namedItem('inviteBtn') as HTMLButtonElement;
-                const orgId = workflowsData?.org_members?.[0]?.org_id;
-                
-                if (!orgId) return alert("Organization ID not found");
-                if (password.length < 9) return alert("Password must be at least 9 characters");
-                
-                btn.disabled = true;
-                btn.textContent = 'Inviting...';
-                
-                try {
-                  const res = await fetch('/api/org/invite', {
+            <button
+              onClick={async () => {
+                const confirmOrg = prompt('DANGER: Deleting your organization will remove all workflows and members. Type your org name to confirm:');
+                if (confirmOrg === workflowsData?.org_members?.[0]?.organization?.name) {
+                  const res = await fetch('/api/org/delete', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password, role, orgId })
+                    body: JSON.stringify({ orgId })
                   });
-                  const data = await res.json();
-                  if (data.success) {
-                    alert('User invited successfully!');
-                    form.reset();
-                  } else {
-                    alert('Error: ' + data.message);
-                  }
-                } catch (err) {
-                  alert('Error inviting user');
-                } finally {
-                  btn.disabled = false;
-                  btn.textContent = 'Invite Member';
+                  if (res.ok) window.location.reload();
+                  else alert('Failed to delete organization');
+                } else if (confirmOrg !== null) {
+                  alert('Organization name did not match.');
                 }
               }}
-              className="flex flex-col gap-5"
+              className="px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-xl text-sm font-semibold transition-colors"
             >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              Delete Organization
+            </button>
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="glass-panel rounded-3xl p-6 bg-white/50 h-fit">
+              <h3 className="text-lg font-bold text-stone-900 mb-4 font-heading">Invite Member</h3>
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  const form = e.target as HTMLFormElement;
+                  const email = (form.elements.namedItem('inviteEmail') as HTMLInputElement).value;
+                  const password = (form.elements.namedItem('invitePassword') as HTMLInputElement).value;
+                  const role = (form.elements.namedItem('inviteRole') as HTMLSelectElement).value;
+                  const btn = form.elements.namedItem('inviteBtn') as HTMLButtonElement;
+                  
+                  if (!orgId) return alert("Organization ID not found");
+                  if (password.length < 9) return alert("Password must be at least 9 characters");
+                  
+                  btn.disabled = true;
+                  btn.textContent = 'Inviting...';
+                  
+                  try {
+                    const res = await fetch('/api/org/invite', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ email, password, role, orgId })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                      alert('User invited successfully!');
+                      form.reset();
+                      // Refresh members
+                      fetch(`/api/org/members?orgId=${orgId}`)
+                        .then(r => r.json())
+                        .then(d => { if(d.success) setMembers(d.members) });
+                    } else {
+                      alert('Error: ' + data.message);
+                    }
+                  } catch (err) {
+                    alert('Error inviting user');
+                  } finally {
+                    btn.disabled = false;
+                    btn.textContent = 'Invite Member';
+                  }
+                }}
+                className="flex flex-col gap-4"
+              >
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-stone-500 uppercase tracking-wider">Email Address</label>
                   <input
@@ -448,7 +511,7 @@ export default function Dashboard() {
                     type="email"
                     required
                     placeholder="teammate@example.com"
-                    className="w-full bg-white border border-stone-200 text-stone-900 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 transition-all shadow-sm"
+                    className="w-full bg-white border border-stone-200 text-stone-900 px-4 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 transition-all shadow-sm"
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -458,26 +521,67 @@ export default function Dashboard() {
                     type="text"
                     required
                     placeholder="Min 9 characters"
-                    className="w-full bg-white border border-stone-200 text-stone-900 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 transition-all shadow-sm"
+                    className="w-full bg-white border border-stone-200 text-stone-900 px-4 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 transition-all shadow-sm"
                   />
                 </div>
-              </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-stone-500 uppercase tracking-wider block">Role</label>
-                <select
-                  name="inviteRole"
-                  className="w-full bg-white border border-stone-200 text-stone-900 px-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 transition-all shadow-sm cursor-pointer"
-                >
-                  <option value="viewer">Viewer (Read Only)</option>
-                  <option value="editor">Editor (Can edit & run workflows)</option>
-                </select>
-              </div>
-              <div className="pt-2">
-                <button name="inviteBtn" type="submit" className="flex items-center justify-center gap-2 bg-gradient-to-r from-yellow-400 to-pink-500 hover:from-yellow-300 hover:to-pink-400 text-white font-semibold px-8 py-3.5 rounded-xl transition-all shadow-lg shadow-pink-500/20 hover:shadow-pink-500/40 hover:scale-[1.02] active:scale-[0.98]">
-                  <Plus className="w-5 h-5" /> Invite Member
-                </button>
-              </div>
-            </form>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-stone-500 uppercase tracking-wider block">Role</label>
+                  <select
+                    name="inviteRole"
+                    className="w-full bg-white border border-stone-200 text-stone-900 px-4 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-400 focus:border-pink-400 transition-all shadow-sm cursor-pointer"
+                  >
+                    <option value="viewer">Viewer (Read Only)</option>
+                    <option value="editor">Editor (Can edit & run workflows)</option>
+                  </select>
+                </div>
+                <div className="pt-2">
+                  <button name="inviteBtn" type="submit" className="w-full flex items-center justify-center gap-2 bg-stone-900 hover:bg-stone-800 text-white font-semibold py-3 rounded-xl transition-all shadow-md">
+                    <Plus className="w-4 h-4" /> Send Invite
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <div className="glass-panel rounded-3xl p-6 bg-white/50 h-fit">
+              <h3 className="text-lg font-bold text-stone-900 mb-4 font-heading">Current Members</h3>
+              {members.length > 0 ? (
+                <div className="flex flex-col gap-3">
+                  {members.map((member, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-4 bg-white border border-stone-200 rounded-xl shadow-sm">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-semibold text-stone-900">{member.email}</span>
+                        <span className="text-xs text-stone-500 capitalize">{member.role}</span>
+                      </div>
+                      {member.user_id !== userData?.id && (
+                        <button 
+                          onClick={async () => {
+                            if (confirm(`Remove ${member.email} from the organization?`)) {
+                              const res = await fetch('/api/org/members/delete', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ orgId, userId: member.user_id })
+                              });
+                              if (res.ok) {
+                                setMembers(prev => prev.filter(m => m.user_id !== member.user_id));
+                              } else {
+                                alert('Failed to remove member');
+                              }
+                            }
+                          }}
+                          className="p-2 text-stone-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-sm text-stone-500 p-4 bg-stone-50 rounded-xl border border-stone-200">
+                  Loading members...
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

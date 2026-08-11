@@ -2,14 +2,25 @@
 
 import { useState } from 'react';
 import { useAccessToken, useAuthenticationStatus } from '@nhost/nextjs';
-import { Plus, Save } from 'lucide-react';
+import { Plus, Save, Trash2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
-export default function WorkflowEditor() {
+interface WorkflowEditorProps {
+  initialWorkflow?: {
+    id: string;
+    name: string;
+    description: string;
+    steps: Array<{ type: string; config: any }>;
+  };
+}
+
+export default function WorkflowEditor({ initialWorkflow }: WorkflowEditorProps) {
+  const router = useRouter();
   const { isAuthenticated } = useAuthenticationStatus();
   const accessToken = useAccessToken();
-  const [workflowName, setWorkflowName] = useState('');
-  const [workflowDesc, setWorkflowDesc] = useState('');
-  const [steps, setSteps] = useState<Array<{ type: string; config: any }>>([]);
+  const [workflowName, setWorkflowName] = useState(initialWorkflow?.name || '');
+  const [workflowDesc, setWorkflowDesc] = useState(initialWorkflow?.description || '');
+  const [steps, setSteps] = useState<Array<{ type: string; config: any }>>(initialWorkflow?.steps || []);
   // Trigger configuration
   const [triggerType, setTriggerType] = useState<'manual' | 'webhook'>('manual');
   const [webhookUrl, setWebhookUrl] = useState('');
@@ -23,6 +34,10 @@ export default function WorkflowEditor() {
       newSteps[fromIndex] = temp;
       return newSteps;
     });
+  };
+
+  const removeStep = (index: number) => {
+    setSteps(prev => prev.filter((_, i) => i !== index));
   };
 
   const addStep = (type: string) => {
@@ -39,26 +54,32 @@ export default function WorkflowEditor() {
       return;
     }
     try {
-      const response = await fetch('/api/workflows/create', {
+      const isUpdate = !!initialWorkflow;
+      const url = isUpdate ? '/api/workflows/update' : '/api/workflows/create';
+      const bodyPayload = isUpdate 
+        ? { workflowId: initialWorkflow.id, name: workflowName, description: workflowDesc, steps }
+        : { input: { name: workflowName, description: workflowDesc, steps: steps.map((s, idx) => ({ type: s.type, config: s.config, order_index: idx })) } };
+
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({
-          input: {
-            name: workflowName,
-            description: workflowDesc,
-            steps: steps.map((s, idx) => ({ type: s.type, config: s.config, order_index: idx })),
-          }
-        }),
+        body: JSON.stringify(bodyPayload),
       });
       const result = await response.json();
-      if (!response.ok) {
+      if (!response.ok || !result.success) {
         alert(result.message || 'Failed to save workflow');
         return;
       }
-      alert(`Workflow saved! ID: ${result.workflowId}`);
+      alert(`Workflow ${isUpdate ? 'updated' : 'saved'}!`);
+      if (!isUpdate) {
+        setWorkflowName('');
+        setWorkflowDesc('');
+        setSteps([]);
+      }
+      router.push('/');
       // Reset form
       setWorkflowName('');
       setWorkflowDesc('');
@@ -75,7 +96,9 @@ export default function WorkflowEditor() {
         <div className="p-2 bg-pink-100 rounded-xl border border-pink-200">
           <Plus className="w-5 h-5 text-pink-500" />
         </div>
-        <h2 className="text-2xl font-bold text-stone-900 font-heading">Create New Workflow</h2>
+        <h2 className="text-2xl font-bold text-stone-900 font-heading">
+          {initialWorkflow ? 'Edit Workflow' : 'Create New Workflow'}
+        </h2>
       </div>
 
       <div className="flex flex-col gap-5 mb-8">
@@ -144,6 +167,11 @@ export default function WorkflowEditor() {
                     <span className="text-sm font-medium text-stone-800 capitalize tracking-wide">{step.type.replace('_', ' ')}</span>
                   </div>
                   <div className="flex gap-1.5 opacity-50 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => removeStep(idx)}
+                      className="w-7 h-7 flex items-center justify-center bg-stone-50 hover:bg-red-50 text-stone-400 hover:text-red-500 border border-transparent hover:border-red-200 rounded-lg transition-colors"
+                      aria-label="Remove step"
+                    ><Trash2 size={14} /></button>
                     <button
                       onClick={() => moveStep(idx, 'up')}
                       className="w-7 h-7 flex items-center justify-center bg-stone-50 hover:bg-pink-50 text-stone-400 hover:text-pink-500 border border-transparent hover:border-pink-200 rounded-lg transition-colors disabled:opacity-30 disabled:hover:bg-stone-50 disabled:hover:text-stone-400 disabled:hover:border-transparent"
