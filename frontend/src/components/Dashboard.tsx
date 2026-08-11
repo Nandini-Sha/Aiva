@@ -147,9 +147,16 @@ export default function Dashboard() {
               <div className="p-2 bg-pink-100 rounded-lg border border-pink-200">
                 <Key className="w-5 h-5 text-pink-500" />
               </div>
-              <span className="text-sm font-medium text-stone-600">
-                Logged in as <strong className="text-stone-900 text-base ml-1">{userData?.displayName || userData?.email}</strong>
-              </span>
+              <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+                <span className="text-sm font-medium text-stone-600">
+                  Logged in as <strong className="text-stone-900 text-base ml-1">{userData?.displayName || userData?.email}</strong>
+                </span>
+                {workflowsData?.org_members?.[0]?.organization?.name && (
+                  <span className="px-2.5 py-1 bg-yellow-100 text-yellow-700 border border-yellow-200 text-xs font-bold rounded-lg tracking-wide uppercase inline-flex self-start">
+                    {workflowsData.org_members[0].organization.name}
+                  </span>
+                )}
+              </div>
             </div>
             <div className="text-xs text-stone-500">
               Use this JWT to query Hasura. Row-Level Security automatically restricts access to your org's data.
