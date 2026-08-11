@@ -325,6 +325,9 @@ export default function Dashboard() {
                   )}
                 </div>
               </div>
+              {activeWorkflow?.description && (
+                <p className="text-sm text-stone-500 mt-2 mb-4 leading-relaxed max-w-2xl">{activeWorkflow.description}</p>
+              )}
               
               <div className="glass-panel p-2 rounded-3xl">
             <div className="bg-white/50 rounded-[1.25rem] p-6 min-h-[400px] border border-stone-200/50 flex flex-col gap-5 relative">
@@ -349,10 +352,11 @@ export default function Dashboard() {
                             <span className="font-semibold text-stone-800 tracking-wide">{step.type.replace('_', ' ').toUpperCase()}</span>
                           </div>
                         </div>
-                        <div className="text-sm text-stone-500 mt-1.5 font-medium">
-                          {step.type === 'llm_call' ? 'Call external LLM API' : 
-                          step.type === 'http_request' ? 'Fetch data from endpoint' : 
-                          step.type === 'approval_gate' ? 'Pause for human review' : 'Branch conditionally'}
+                        <div className="text-sm text-stone-500 mt-1.5 font-medium line-clamp-2">
+                          {step.type === 'llm_call' ? (step.config?.prompt || 'Call external LLM API') : 
+                           step.type === 'http_request' ? (step.config?.url || 'Fetch data from endpoint') : 
+                           step.type === 'approval_gate' ? (step.config?.message || 'Pause for human review') : 
+                           (step.config?.condition_variable ? `Branch on ${step.config.condition_variable}` : 'Branch conditionally')}
                         </div>
                       </div>
                     </div>
@@ -427,8 +431,13 @@ export default function Dashboard() {
                         </div>
                       )}
                       {step.output && !step.error && (
-                        <div className="text-xs text-stone-600 font-mono whitespace-pre-wrap">
-                          {typeof step.output === 'object' ? JSON.stringify(step.output, null, 2) : step.output}
+                        <div className="text-xs text-stone-600 font-mono whitespace-pre-wrap max-h-60 overflow-y-auto">
+                          {step.output.text 
+                            ? step.output.text 
+                            : step.output.response 
+                              ? (typeof step.output.response === 'object' ? JSON.stringify(step.output.response, null, 2) : step.output.response) 
+                              : (typeof step.output === 'object' ? JSON.stringify(step.output, null, 2) : step.output)
+                          }
                         </div>
                       )}
                     </div>
