@@ -5,11 +5,7 @@ import { Play, Pause, CheckCircle, Clock, Settings, Zap, Users, ShieldAlert, Key
 import { useAuthenticationStatus, useAccessToken, useUserData, useSignOut } from '@nhost/nextjs';
 import { gql, useQuery, useSubscription, useMutation } from '@apollo/client';
 
-const mockUsers = [
-  { id: 'user-1', name: 'Alice (Org A - Owner)', role: 'owner', org: 'Org A' },
-  { id: 'user-2', name: 'Bob (Org A - Viewer)', role: 'viewer', org: 'Org A' },
-  { id: 'user-3', name: 'Charlie (Org B - Owner)', role: 'owner', org: 'Org B' },
-];
+
 
 const GET_WORKFLOWS = gql`
   query GetWorkflows {
@@ -75,7 +71,7 @@ export default function Dashboard() {
   const userData = useUserData();
   const { signOut } = useSignOut();
 
-  const [currentUser, setCurrentUser] = useState(mockUsers[0]);
+
 
   // Apollo queries (only run when authenticated)
   const { data: workflowsData, loading: workflowsLoading } = useQuery(GET_WORKFLOWS, { skip: !isAuthenticated });
@@ -95,23 +91,14 @@ export default function Dashboard() {
     skip: !activeWorkflowId || !isAuthenticated,
   });
 
-  // Mock states for Simulator
-  const [mockRunStatus, setMockRunStatus] = useState<string>('idle');
-  const [mockSteps, setMockSteps] = useState<any[]>([
-    { id: 's1', type: 'llm_call', status: 'pending' },
-    { id: 's2', type: 'http_request', status: 'pending' },
-    { id: 's3', type: 'approval_gate', status: 'pending' },
-    { id: 's4', type: 'conditional_branch', status: 'pending' },
-  ]);
-
   // Derived state
-  const isMock = !isAuthenticated;
-  const activeWorkflow = isMock ? null : workflowsData?.workflows.find((w: any) => w.id === activeWorkflowId);
-  const latestRun = isMock ? null : runData?.workflow_runs?.[0];
-  const runStatus = isMock ? mockRunStatus : (latestRun?.status || 'idle');
+  const userRole = workflowsData?.org_members?.[0]?.role;
+  const activeWorkflow = workflowsData?.workflows.find((w: any) => w.id === activeWorkflowId);
+  const latestRun = runData?.workflow_runs?.[0];
+  const runStatus = latestRun?.status || 'idle';
   
-  const steps = isMock ? mockSteps : (activeWorkflow?.steps || []);
-  const mappedSteps = isMock ? mockSteps : steps.map((s: any) => {
+  const steps = activeWorkflow?.steps || [];
+  const mappedSteps = steps.map((s: any) => {
     const sRun = latestRun?.step_runs?.find((sr: any) => sr.step_id === s.id);
     return {
       ...s,
@@ -121,132 +108,76 @@ export default function Dashboard() {
   });
 
   const handleRun = async () => {
-    if (isMock) {
-      if (currentUser.role === 'viewer') return alert("Permission Denied: Viewers cannot trigger runs.");
-      setMockRunStatus('running');
-      setMockSteps(mockSteps.map((s, i) => i === 0 ? { ...s, status: 'running' } : s));
-      setTimeout(() => {
-        setMockSteps(prev => prev.map((s, i) => i === 0 ? { ...s, status: 'completed' } : (i === 1 ? { ...s, status: 'running' } : s)));
-        setTimeout(() => {
-          setMockSteps(prev => prev.map((s, i) => i === 1 ? { ...s, status: 'completed' } : (i === 2 ? { ...s, status: 'paused' } : s)));
-          setMockRunStatus('paused');
-        }, 1500);
-      }, 1500);
-    } else {
-      if (!activeWorkflowId) return;
-      try {
-        const { data } = await triggerRun({ variables: { workflow_id: activeWorkflowId } });
-        if (!data?.triggerWorkflowRun?.success) {
-          alert(data?.triggerWorkflowRun?.message || 'Trigger failed');
-        }
-      } catch(e: any) { 
-        console.error(e); 
-        alert(e.message || 'Error triggering run'); 
+    if (!activeWorkflowId) return;
+    try {
+      const { data } = await triggerRun({ variables: { workflow_id: activeWorkflowId } });
+      if (!data?.triggerWorkflowRun?.success) {
+        alert(data?.triggerWorkflowRun?.message || 'Trigger failed');
       }
+    } catch(e: any) { 
+      console.error(e); 
+      alert(e.message || 'Error triggering run'); 
     }
   };
 
   const handleApprove = async () => {
-    if (isMock) {
-      if (currentUser.role !== 'owner' && currentUser.role !== 'editor') return alert('Permission Denied.');
-      setMockRunStatus('running');
-      setMockSteps(prev => prev.map((s, i) => i === 2 ? { ...s, status: 'completed' } : i === 3 ? { ...s, status: 'running' } : s));
-      setTimeout(() => {
-        setMockSteps(prev => prev.map((s, i) => i === 3 ? { ...s, status: 'completed' } : s));
-        setMockRunStatus('completed');
-      }, 1500);
-    } else {
-      const pausedStep = mappedSteps.find((s: any) => s.status === 'paused');
-      if (!pausedStep || !pausedStep.stepRunId) return;
-      try {
-        const { data } = await approveStep({ variables: { step_run_id: pausedStep.stepRunId } });
-        if (!data?.approveStep?.success) {
-          alert(data?.approveStep?.message || 'Approve failed');
-        }
-      } catch(e: any) { 
-        console.error(e); 
-        alert(e.message || 'Error approving step'); 
+    const pausedStep = mappedSteps.find((s: any) => s.status === 'paused');
+    if (!pausedStep || !pausedStep.stepRunId) return;
+    try {
+      const { data } = await approveStep({ variables: { step_run_id: pausedStep.stepRunId } });
+      if (!data?.approveStep?.success) {
+        alert(data?.approveStep?.message || 'Approve failed');
       }
+    } catch(e: any) { 
+      console.error(e); 
+      alert(e.message || 'Error approving step'); 
     }
   };
+
+  if (!isAuthenticated) return null;
 
   return (
     <div className="flex flex-col gap-8">
       {/* Top Bar / Context Switcher or Real Auth */}
-      {isAuthenticated ? (
-        <div className="glass-panel p-5 rounded-2xl relative overflow-hidden group">
-          <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-indigo-500/20 rounded-lg border border-indigo-500/30">
-                  <Key className="w-5 h-5 text-indigo-400" />
-                </div>
-                <span className="text-sm font-medium text-slate-300">
-                  Logged in as <strong className="text-white text-base ml-1">{userData?.displayName || userData?.email}</strong>
-                </span>
+      <div className="glass-panel p-5 rounded-2xl relative overflow-hidden group">
+        <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-indigo-500/20 rounded-lg border border-indigo-500/30">
+                <Key className="w-5 h-5 text-indigo-400" />
               </div>
-              <div className="text-xs text-slate-400">
-                Use this JWT to query Hasura. Row-Level Security automatically restricts access to your org's data.
-              </div>
+              <span className="text-sm font-medium text-slate-300">
+                Logged in as <strong className="text-white text-base ml-1">{userData?.displayName || userData?.email}</strong>
+              </span>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="relative group/jwt flex-1 md:w-64">
-                <div className="p-2.5 bg-slate-950/80 rounded-xl border border-white/10 font-mono text-[10px] text-slate-500 truncate cursor-default">
-                  {accessToken}
-                </div>
-                <button 
-                  onClick={() => navigator.clipboard.writeText(accessToken || '')}
-                  className="absolute inset-y-0 right-0 flex items-center px-3 bg-gradient-to-l from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white text-xs rounded-r-xl opacity-0 group-hover/jwt:opacity-100 transition-all font-medium"
-                >
-                  Copy JWT
-                </button>
+            <div className="text-xs text-slate-400">
+              Use this JWT to query Hasura. Row-Level Security automatically restricts access to your org's data.
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="relative group/jwt flex-1 md:w-64">
+              <div className="p-2.5 bg-slate-950/80 rounded-xl border border-white/10 font-mono text-[10px] text-slate-500 truncate cursor-default">
+                {accessToken}
               </div>
-              <button onClick={() => signOut()} className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-sm text-slate-300 transition-colors">
-                Sign Out
+              <button 
+                onClick={() => navigator.clipboard.writeText(accessToken || '')}
+                className="absolute inset-y-0 right-0 flex items-center px-3 bg-gradient-to-l from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white text-xs rounded-r-xl opacity-0 group-hover/jwt:opacity-100 transition-all font-medium"
+              >
+                Copy JWT
               </button>
             </div>
+            <button onClick={() => signOut()} className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-sm text-slate-300 transition-colors">
+              Sign Out
+            </button>
           </div>
         </div>
-      ) : (
-        <div className="glass-panel p-5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative overflow-hidden">
-          <div className="absolute -right-20 -top-20 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
-          <div className="flex items-center gap-4 relative z-10">
-            <div className="p-2.5 bg-indigo-500/20 rounded-xl border border-indigo-500/30">
-              <Users className="w-5 h-5 text-indigo-400" />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Simulate Context</span>
-              <select 
-                className="bg-slate-950/80 border border-white/10 text-white text-sm rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 block p-2 min-w-[200px] shadow-inner"
-                value={currentUser.id}
-                onChange={(e) => setCurrentUser(mockUsers.find(u => u.id === e.target.value)!)}
-              >
-                {mockUsers.map(u => (
-                  <option key={u.id} value={u.id}>{u.name}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <div className="flex items-center gap-5 relative z-10 bg-slate-950/50 p-3 rounded-xl border border-white/5">
-            <div className="flex flex-col items-end">
-              <span className="text-[10px] text-slate-400 uppercase tracking-wider font-semibold">Quota Used</span>
-              <span className="text-xl font-bold text-white leading-none mt-1">45 <span className="text-xs text-slate-500 font-normal">/ 100</span></span>
-            </div>
-            <div className="w-12 h-12 rounded-full relative">
-              <svg className="w-full h-full drop-shadow-[0_0_8px_rgba(99,102,241,0.5)]" viewBox="0 0 36 36">
-                <path className="text-slate-800" strokeWidth="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                <path className="text-indigo-500" strokeWidth="3" strokeDasharray="45, 100" strokeLinecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-              </svg>
-            </div>
-          </div>
-        </div>
-      )}
+      </div>
 
       <div className="grid lg:grid-cols-3 gap-8">
         {/* Left Column - Workflow Builder */}
         <div className="lg:col-span-2 flex flex-col gap-5">
-          {!isMock && workflowsData && workflowsData.org_members?.length === 0 ? (
+          {workflowsData && workflowsData.org_members?.length === 0 ? (
             <div className="glass-panel p-8 rounded-3xl flex flex-col items-center justify-center text-center gap-4 border border-indigo-500/20">
               <div className="w-16 h-16 rounded-full bg-indigo-500/20 flex items-center justify-center mb-2">
                 <Users className="w-8 h-8 text-indigo-400" />
@@ -319,7 +250,7 @@ export default function Dashboard() {
                   <a href="/workflows/create" className="flex items-center gap-1 bg-white/5 hover:bg-white/10 text-slate-300 border border-white/10 px-4 py-2.5 rounded-xl text-sm font-medium transition-all">
                     <Plus className="w-4 h-4" /> New
                   </a>
-                  {(!isMock && currentUser.role !== 'viewer') || (isMock && currentUser.role !== 'viewer') ? (
+                  {(userRole !== 'viewer') ? (
                     <button onClick={handleRun} disabled={runStatus === 'running'} className="flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-400 hover:to-indigo-500 disabled:opacity-50 text-white px-5 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40 hover:scale-[1.02] active:scale-[0.98]">
                       <Play className="w-4 h-4 fill-current" /> Run
                     </button>
