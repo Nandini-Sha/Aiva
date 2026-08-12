@@ -3,7 +3,8 @@
 A full-stack application for building, running, and managing AI agent workflows. Built with Next.js, Nhost (PostgreSQL + Hasura + GraphQL), and TailwindCSS.
 
 ## Live Demo
-**Deployed URL:** [Your Vercel URL here]
+**Deployed App URL:** [Your Vercel URL here]
+**Final Scenario Demo Video:** [https://youtu.be/JVOwcxk4b48](https://youtu.be/JVOwcxk4b48)
 
 ## Features
 - **Visual Workflow Builder:** Chain together LLM calls, HTTP requests, conditional branches, and approval gates.
@@ -74,11 +75,12 @@ The frontend will be available at `http://localhost:3000`.
 Please refer to `WRITEUP.md` for a detailed architectural breakdown regarding schema design, the two-layer permission system, and the implementation of the approval gate logic.
 
 <!-- 
-# Aiva – AI Agent Workflow Builder
+# Aiva â€“ AI Agent Workflow Builder
 
-A role-based AI workflow automation platform where organizations can build, trigger, and manage AI agent steps in real time — built with Next.js, Nhost, Hasura, and PostgreSQL.
+A role-based AI workflow automation platform where organizations can build, trigger, and manage AI agent steps in real time â€” built with Next.js, Nhost, Hasura, and PostgreSQL.
 
-**?? Live Demo:** [Your Vercel URL here]
+**ðŸŒ Live Demo:** [Your Vercel URL here]
+**ðŸŽ¥ Scenario Video:** [https://youtu.be/JVOwcxk4b48](https://youtu.be/JVOwcxk4b48)
 
 ---
 
@@ -120,34 +122,34 @@ A role-based AI workflow automation platform where organizations can build, trig
 \\\
 aiva/
 +-- frontend/
-¦ +-- src/
-¦ ¦ +-- app/
-¦ ¦ ¦ +-- api/ (Serverless Functions / Hasura Actions)
-¦ ¦ ¦ +-- workflows/
-¦ ¦ ¦ +-- page.tsx
-¦ ¦ ¦ +-- layout.tsx
-¦ ¦ +-- components/
-¦ ¦ ¦ +-- dashboard/
-¦ ¦ ¦ ¦ +-- Header.tsx
-¦ ¦ ¦ ¦ +-- LiveRunViewer.tsx
-¦ ¦ ¦ ¦ +-- OrganizationSetup.tsx
-¦ ¦ ¦ ¦ +-- TeamSettings.tsx
-¦ ¦ ¦ ¦ +-- WorkflowList.tsx
-¦ ¦ ¦ +-- Dashboard.tsx
-¦ ¦ ¦ +-- WorkflowEditor.tsx
-¦ ¦ +-- lib/
-¦ ¦ ¦ +-- engine/ (Execution Strategy Handlers)
-¦ ¦ ¦ +-- graphql/
-¦ ¦ +-- types/
-¦ +-- .env.local
-¦ +-- package.json
-¦ +-- tailwind.config.ts
-¦
+Â¦ +-- src/
+Â¦ Â¦ +-- app/
+Â¦ Â¦ Â¦ +-- api/ (Serverless Functions / Hasura Actions)
+Â¦ Â¦ Â¦ +-- workflows/
+Â¦ Â¦ Â¦ +-- page.tsx
+Â¦ Â¦ Â¦ +-- layout.tsx
+Â¦ Â¦ +-- components/
+Â¦ Â¦ Â¦ +-- dashboard/
+Â¦ Â¦ Â¦ Â¦ +-- Header.tsx
+Â¦ Â¦ Â¦ Â¦ +-- LiveRunViewer.tsx
+Â¦ Â¦ Â¦ Â¦ +-- OrganizationSetup.tsx
+Â¦ Â¦ Â¦ Â¦ +-- TeamSettings.tsx
+Â¦ Â¦ Â¦ Â¦ +-- WorkflowList.tsx
+Â¦ Â¦ Â¦ +-- Dashboard.tsx
+Â¦ Â¦ Â¦ +-- WorkflowEditor.tsx
+Â¦ Â¦ +-- lib/
+Â¦ Â¦ Â¦ +-- engine/ (Execution Strategy Handlers)
+Â¦ Â¦ Â¦ +-- graphql/
+Â¦ Â¦ +-- types/
+Â¦ +-- .env.local
+Â¦ +-- package.json
+Â¦ +-- tailwind.config.ts
+Â¦
 +-- nhost/
-¦ +-- metadata/ (Hasura Permissions & Actions)
-¦ +-- migrations/ (PostgreSQL Schema)
-¦ +-- config.toml
-¦
+Â¦ +-- metadata/ (Hasura Permissions & Actions)
+Â¦ +-- migrations/ (PostgreSQL Schema)
+Â¦ +-- config.toml
+Â¦
 +-- WRITEUP.md
 +-- README.md
 \\\
@@ -211,7 +213,7 @@ A quick visual walkthrough of **Aiva**, showcasing key screens and user flows.
 - Advanced usage analytics dashboard
   
 ## ???? Author
-- **Nandini** – [GitHub Profile](https://github.com/Nandini-Sha)
+- **Nandini** â€“ [GitHub Profile](https://github.com/Nandini-Sha)
   
 ## ?? License
 This project is licensed under the [MIT License](LICENSE).

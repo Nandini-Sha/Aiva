@@ -1,5 +1,7 @@
 # Architectural Write-up
 
+**🎥 Final Scenario Demo Video:** [https://youtu.be/JVOwcxk4b48](https://youtu.be/JVOwcxk4b48)
+
 This document explains the core design decisions behind the Aiva AI Workflow Builder, specifically focusing on schema design, the two-layer permission model, and the execution engine's handling of approval gates.
 
 ## 1. Schema Reasoning & Relationships
